@@ -48,6 +48,11 @@
 ;;;     '(progn
 ;;;        (define-key evil-visual-state-map (kbd "m") #'mor-mode-on-region)
 ;;;        (define-key evil-visual-state-map (kbd ".") #'mor-prev-mode-on-region)))
+;;;   ;; recommended keybinds for the tmp buffer. Both Vanilla and Evil.
+;;;   (eval-after-load "mor"
+;;;     '(progn
+;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c b" #'mor-copy-back))
+;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c ." #'mor-close-tmp-buffer))))
 
 
 ;;; Code:
@@ -61,13 +66,7 @@ required guards to verify the user was inside a mor tmp buffer.
 NOTE: the guards still exist for needed protection.  The minor mode
 keybinds just help avoid keybind pollution, and reduce the risk of
 accidentally calling a function not relevant outside of a tmp buffer."
-  :lighter " mor-tmp"
-  :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "C-x C-c b") #'mor-copy-back)
-            (define-key map (kbd "C-x C-c C-b") #'mor-copy-back)
-            (define-key map (kbd "C-x C-c c") #'mor-close-tmp-buffer)
-            (define-key map (kbd "C-x C-c C-c") #'mor-close-tmp-buffer)
-            map))
+  :lighter " mor-tmp")
 
 (defvar mor-readonly-for-extra-protection-p t
   "When t the orig buffer will be read only until the tmp buffer is killed.
