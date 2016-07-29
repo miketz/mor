@@ -1,4 +1,4 @@
-;;; mor.el --- Mode on region -*- lexical-binding: t -*-
+;;; mode-on-region.el --- Mode on region -*- lexical-binding: t -*-
 
 ;;; License: GPL version 3
 
@@ -31,7 +31,7 @@
 
 
 ;;; Installation:
-;;; Place `mor.el' in folder `/your/chosen/folder'.
+;;; Place `mode-on-region.el' in folder `/your/chosen/folder'.
 ;;; Add the following text to your .emacs or init.el file:
 ;;;
 ;;;   (add-to-list 'load-path "/your/chosen/folder")
@@ -295,4 +295,4 @@ Kills the tmp buffer."
 
 (provide 'mor)
 
-;;; mor.el ends here
+;;; mode-on-region.el ends here
