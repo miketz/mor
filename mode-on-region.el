@@ -49,10 +49,10 @@
 ;;;        (define-key evil-visual-state-map (kbd "m") #'mor-mode-on-region)
 ;;;        (define-key evil-visual-state-map (kbd ".") #'mor-prev-mode-on-region)))
 ;;;   ;; recommended keybinds for the tmp buffer. Both Vanilla and Evil.
-;;;   (eval-after-load "mor"
+;;;   (eval-after-load "mode-on-region"
 ;;;     '(progn
 ;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c b" #'mor-copy-back))
-;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c ." #'mor-close-tmp-buffer))))
+;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c c" #'mor-close-tmp-buffer))))
 
 
 ;;; Code:
