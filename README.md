@@ -2,7 +2,8 @@
 
 **mor-mode-on-region** copies a highlighted region to a tmp buffer and
 turns on the mode of your choice.
-`mor-prev-mode-on-region' does the same thing, but recalls the previously
+
+**mor-prev-mode-on-region** does the same thing, but recalls the previously
 chosen mode.
 
 Copy the text back with **mor-copy-back** or C-x C-c b.
