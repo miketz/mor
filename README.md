@@ -6,8 +6,11 @@ turns on the mode of your choice.
 chosen mode.
 
 Copy the text back with **mor-copy-back** or C-x C-c b.
+
                                              mnemonic: copy back
+
 Abandon your edits with **mor-close-tmp-buffer** or C-x C-c c.
+
                                                     mnemonic: close
 
 This package is useful to work with code in mutli-lanuage files.  Such as
