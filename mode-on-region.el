@@ -66,7 +66,10 @@ required guards to verify the user was inside a mor tmp buffer.
 NOTE: the guards still exist for needed protection.  The minor mode
 keybinds just help avoid keybind pollution, and reduce the risk of
 accidentally calling a function not relevant outside of a tmp buffer."
-  :lighter " mor-tmp")
+  :lighter " mor-tmp"
+  :keymap (let ((map (make-sparse-keymap)))
+            ;; No default bindings for now. User will choose them.
+            map))
 
 (defvar mor-readonly-for-extra-protection-p t
   "When t the orig buffer will be read only until the tmp buffer is killed.
