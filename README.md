@@ -12,7 +12,7 @@ Copy the text back with **mor-copy-back** or C-x C-c b.
 
 Abandon your edits with **mor-close-tmp-buffer** or C-x C-c c.
 
-                                                    mnemonic: close
+                                             mnemonic: close
 
 This package is useful to work with code in mutli-lanuage files.  Such as
 javascript, css, and html mixed in one file.
