@@ -295,6 +295,6 @@ Kills the tmp buffer."
         (quit-window t (get-buffer-window tmp-buff))))))
 
 
-(provide 'mor)
+(provide 'mode-on-region)
 
 ;;; mode-on-region.el ends here
