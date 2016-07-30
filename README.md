@@ -1,4 +1,4 @@
-# mor - mode on region
+# mode on region
 
 **mor-mode-on-region** copies a highlighted region to a tmp buffer and
 turns on the mode of your choice.
