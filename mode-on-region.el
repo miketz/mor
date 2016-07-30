@@ -35,8 +35,8 @@
 ;;; Add the following text to your .emacs or init.el file:
 ;;;
 ;;;   (add-to-list 'load-path "/your/chosen/folder")
-;;;   (autoload #'mor-mode-on-region "mor" nil t)
-;;;   (autoload #'mor-prev-mode-on-region "mor" nil t)
+;;;   (autoload #'mor-mode-on-region "mode-on-region" nil t)
+;;;   (autoload #'mor-prev-mode-on-region "mode-on-region" nil t)
 ;;;   ;; configure
 ;;;   (setq mor-format-automatically-p nil)
 ;;;   (setq mor-readonly-for-extra-protection-p t)
