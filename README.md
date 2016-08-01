@@ -20,8 +20,9 @@ eww-mode, text-mode, info-mode, etc.
 
 # Installation
 
-Place `mode-on-region.el' in folder `/your/chosen/folder'.
-Add the following text to your .emacs or init.el file:
+Place mode-on-region.el in folder /your/chosen/folder.
+
+Then add the following text to your .emacs or init.el file:
 
     (add-to-list 'load-path "/your/chosen/folder")
     (autoload #'mor-mode-on-region "mode-on-region" nil t)
