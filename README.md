@@ -14,5 +14,5 @@ Abandon your edits with **mor-close-tmp-buffer**
 This package is useful to work with code in mutli-lanuage files.  Such as
 javascript, css, and html mixed in one file.
 
-It's also useful to interact with code in tecnical books; while viewing via
+It's also useful to interact with code in technical books; while viewing via
 eww-mode, text-mode, info-mode, etc.
