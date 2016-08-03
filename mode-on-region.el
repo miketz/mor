@@ -84,6 +84,12 @@ NOTE: This is not full-proof.")
   "Function used to switch to the tmp buffer (and back again).
 Choices: `switch-to-buffer-other-window' or `switch-to-buffer'")
 
+;; TODO: use this face. I need to read up on the emacs docs for faces.
+;; (defface mor-readonly-face
+;;   '((t (:inherit region)))
+;;   "Face for the selected region.
+;; When using `mor-readonly-for-extra-protection-p'")
+
 
 ;; TODO: Make an option to attempt to preserve the original indent when copying
 ;;       text back to the original buffer. This could make option
