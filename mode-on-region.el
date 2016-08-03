@@ -113,10 +113,10 @@ Used by `mor-prev-mode-on-region'")
   "The original buffer you highted some text in.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
 (defvar-local mor--start nil
-  "Start of region.
+  "Start of region. Implemented via a marker.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
 (defvar-local mor--end nil
-  "End of region.
+  "End of region. Implemented via a marker.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
 
 
@@ -141,6 +141,23 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
   (dolist (b (buffer-list))
     (when (mor--starts-with-p (buffer-name b) mor--prefix)
       (kill-buffer b))))
+
+(defun mor--set-region-read-only (begin end)
+  "Make region read only"
+  ;; this function taken from phils
+  ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
+  (let ((modified (buffer-modified-p)))
+    (add-text-properties begin end '(read-only t))
+    (set-buffer-modified-p modified)))
+
+(defun mor--set-region-writeable (begin end)
+  "Make region writeable"
+  ;; this function taken from phils
+  ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
+  (let ((modified (buffer-modified-p))
+        (inhibit-read-only t))
+    (remove-text-properties begin end '(read-only t))
+    (set-buffer-modified-p modified)))
 
 (defvar mor-mode-fn nil
   "Making mode-fn a dynamic variable.
@@ -193,9 +210,11 @@ MODE-FN the function to turn on the desired mode."
 
 
     (kill-ring-save start end) ;; copy higlighted text
+
+
     (when mor-readonly-for-extra-protection-p
-      ;; lock down `orig-buff' until `tmp-buff' is killed
-      (read-only-mode 1))
+      ;; lock down region in `orig-buff' until `tmp-buff' is killed
+      (mor--set-region-read-only start end))
     (deactivate-mark)
 
     (funcall mor-switch-buff-fn tmp-buff)
@@ -208,8 +227,13 @@ MODE-FN the function to turn on the desired mode."
       ;; NOTE: these buffer-local vars must be set AFTER `mode-fn' is
       ;; called. Because major modes wipe buffer local vars.
       (setq mor--orig-buffer orig-buff
-            mor--start start
-            mor--end end))
+            ;; track start/end with markers. Markers will autmoatically "move"
+            ;; as the text around them is changed.
+            mor--start (set-marker (make-marker) start orig-buff)
+            mor--end (set-marker (make-marker) end orig-buff)
+            ;; mor--start start
+            ;; mor--end end
+            ))
 
     (mor-tmp-buffer-mode) ; for keybinds.
 
@@ -228,12 +252,7 @@ MODE-FN the function to turn on the desired mode."
   "Copy the tmp buffer text back the original buffer.
 
 WARNING:
-Overwrites the original text.
-May not work correclty if original buffer has been modified since the tmp
-buffer was created.  If in doubt, just manually copy the text back.
-
-TODO: Use a more full-proof technqiue to identify the start/end location to
-overwrite."
+Overwrites the original text."
   (interactive)
   (mor--finished-with-tmp-buffer t))
 
@@ -243,11 +262,31 @@ Call this if you don't want to copy the text back to the original buffer."
   (interactive)
   (quit-window t))
 
+
+(defun mor--marker-active-p (m)
+  "Return t if the marker is actively pointing to a position."
+  (and (not (null m))
+       (not (null (marker-position m)))))
+
 (defun mor--unlock-orig-buffer ()
-  "Unlock the original buffer."
+  "Unlock region in the original buffer."
+
   (when mor-readonly-for-extra-protection-p
-    (with-current-buffer mor--orig-buffer
-      (read-only-mode 0))))
+    ;; guard against dupe call from hook
+    (when (and (mor--marker-active-p mor--start)
+               (mor--marker-active-p mor--end))
+     (let ((start (marker-position mor--start))
+           (end (marker-position mor--end)))
+       (with-current-buffer mor--orig-buffer
+         (mor--set-region-writeable start end)))))
+
+  ;; clear markers
+  (when (mor--marker-active-p mor--start) ; gaurd against dupe call from hook
+    (set-marker mor--start nil))
+  (when (mor--marker-active-p mor--start) ; gaurd against dupe call from hook
+    (set-marker mor--end nil)))
+
+
 ;; use a hook to unlock the orig buffer when the tmp buffer is killed
 (add-hook 'mor-tmp-buffer-mode-hook
           (lambda ()
@@ -266,14 +305,15 @@ Kills the tmp buffer."
       (message "You must be in a mor-tmp buffer for this to work.")
     (progn ; else
 
-      (mor--unlock-orig-buffer)
-
       ;; Cache tmp buffer local values. They will be invisible once we switch
       ;; back to the orig buffer.
-      (let ((tmp-buff (current-buffer))
-            (start mor--start)
-            (rng (- mor--end
-                    mor--start)))
+      (let* ((tmp-buff (current-buffer))
+             (start (marker-position mor--start))
+             (rng (- (marker-position mor--end)
+                     start)))
+
+        (mor--unlock-orig-buffer)
+
         (when copy-back-p
           ;; tmp buffer text.
           (kill-ring-save (point-min) (point-max)))
