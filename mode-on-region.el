@@ -219,8 +219,11 @@ MODE-FN the function to turn on the desired mode."
 
 
     (when mor-readonly-for-extra-protection-p
-      ;; lock down region in `orig-buff' until `tmp-buff' is killed
-      (mor--set-region-read-only start end))
+      ;; GUARD: can't make it readonly if the buffer is already readonly.
+      (unless buffer-read-only
+        ;; lock down region in `orig-buff' until `tmp-buff' is killed
+        (mor--set-region-read-only start end)))
+
     (deactivate-mark)
 
     (funcall mor-switch-buff-fn tmp-buff)
@@ -287,9 +290,9 @@ Call this if you don't want to copy the text back to the original buffer."
          (mor--set-region-writeable start end)))))
 
   ;; clear markers
-  (when (mor--marker-active-p mor--start) ; gaurd against dupe call from hook
+  (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
     (set-marker mor--start nil))
-  (when (mor--marker-active-p mor--start) ; gaurd against dupe call from hook
+  (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
     (set-marker mor--end nil)))
 
 
