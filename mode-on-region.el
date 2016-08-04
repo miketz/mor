@@ -240,13 +240,10 @@ MODE-FN the function to turn on the desired mode."
       ;; NOTE: these buffer-local vars must be set AFTER `mode-fn' is
       ;; called. Because major modes wipe buffer local vars.
       (setq mor--orig-buffer orig-buff
-            ;; track start/end with markers. Markers will autmoatically "move"
+            ;; track start/end with markers. Markers will automatically "move"
             ;; as the text around them is changed.
             mor--start (set-marker (make-marker) start orig-buff)
-            mor--end (set-marker (make-marker) end orig-buff)
-            ;; mor--start start
-            ;; mor--end end
-            ))
+            mor--end (set-marker (make-marker) end orig-buff)))
 
     (mor-tmp-buffer-mode) ; for keybinds.
 
