@@ -48,7 +48,7 @@
 ;;;     '(progn
 ;;;        (define-key evil-visual-state-map (kbd "m") #'mor-mode-on-region)
 ;;;        (define-key evil-visual-state-map (kbd ".") #'mor-prev-mode-on-region)))
-;;;   ;; recommended keybinds for the tmp buffer. Both Vanilla and Evil.
+;;;   ;; recommended keybinds for the tmp buffer.  Both Vanilla and Evil.
 ;;;   (eval-after-load "mode-on-region"
 ;;;     '(progn
 ;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c b" #'mor-copy-back))
@@ -149,7 +149,9 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
       (kill-buffer b))))
 
 (defun mor--set-region-read-only (begin end)
-  "Make region read only"
+  "Make region read only.
+BEGIN of region.
+END of region."
   ;; this function taken from phils
   ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
   (let ((modified (buffer-modified-p)))
@@ -157,7 +159,9 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
     (set-buffer-modified-p modified)))
 
 (defun mor--set-region-writeable (begin end)
-  "Make region writeable"
+  "Make region writeable.
+BEGIN of region.
+END of region."
   ;; this function taken from phils
   ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
   (let ((modified (buffer-modified-p))
@@ -273,7 +277,8 @@ Call this if you don't want to copy the text back to the original buffer."
 
 
 (defun mor--marker-active-p (m)
-  "Return t if the marker is actively pointing to a position."
+  "Return t if the marker is actively pointing to a position.
+M for marker."
   (and (not (null m))
        (not (null (marker-position m)))))
 
