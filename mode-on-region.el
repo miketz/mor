@@ -72,10 +72,9 @@ accidentally calling a function not relevant outside of a tmp buffer."
             map))
 
 (defvar mor-readonly-for-extra-protection-p t
-  "When t the orig buffer will be read only until the tmp buffer is killed.
-This prevents edits in the orig buffer from throwing off the static coordinates
-for copying text back.
-NOTE: This is not full-proof.")
+  "When t make the selected region of the orig buffer read-only.
+Until the tmp buffer is killed.  This prevents edits in the orig buffer from
+being accidentally overwritten.")
 
 (defvar mor-format-automatically-p nil
   "When t automatically format the copied text via `indent-region'.")
