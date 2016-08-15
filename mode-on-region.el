@@ -187,10 +187,8 @@ Region is between START and END inclusive."
                          ;; otherwise user chooses the mode
                          (intern (completing-read
                                   "Mode: "
-                                  (mapcar (lambda (e)
-                                            (list (symbol-name e)))
-                                          (apropos-internal "-mode$"
-                                                            #'commandp))
+                                  (apropos-internal "-mode$"
+                                                    #'commandp)
                                   nil t)))))
 
 ;;;###autoload
