@@ -154,7 +154,9 @@ END of region."
   ;; this function taken from phils
   ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
   (let ((modified (buffer-modified-p)))
-    (add-text-properties (1- start) end '(read-only t))
+    ;; TODO: fully handle case when region starts at first pos in buffer.
+    (add-text-properties (if (> start 1) (1- start) start)
+                         end '(read-only t))
     (set-buffer-modified-p modified)))
 
 (defun mor--set-region-writeable (start end)
@@ -165,7 +167,9 @@ END of region."
   ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
   (let ((modified (buffer-modified-p))
         (inhibit-read-only t))
-    (remove-text-properties (1- start) end '(read-only t))
+    ;; TODO: fully handle case when region starts at first pos in buffer.
+    (remove-text-properties (if (> start 1) (1- start) start)
+                            end '(read-only t))
     (set-buffer-modified-p modified)))
 
 (defvar mor-mode-fn nil
