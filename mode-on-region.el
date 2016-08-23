@@ -147,25 +147,25 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
     (when (mor--starts-with-p (buffer-name b) mor--prefix)
       (kill-buffer b))))
 
-(defun mor--set-region-read-only (begin end)
+(defun mor--set-region-read-only (start end)
   "Make region read only.
-BEGIN of region.
+START of region.
 END of region."
   ;; this function taken from phils
   ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
   (let ((modified (buffer-modified-p)))
-    (add-text-properties begin end '(read-only t))
+    (add-text-properties start end '(read-only t))
     (set-buffer-modified-p modified)))
 
-(defun mor--set-region-writeable (begin end)
+(defun mor--set-region-writeable (start end)
   "Make region writeable.
-BEGIN of region.
+START of region.
 END of region."
   ;; this function taken from phils
   ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
   (let ((modified (buffer-modified-p))
         (inhibit-read-only t))
-    (remove-text-properties begin end '(read-only t))
+    (remove-text-properties start end '(read-only t))
     (set-buffer-modified-p modified)))
 
 (defvar mor-mode-fn nil
