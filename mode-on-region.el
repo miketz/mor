@@ -28,6 +28,8 @@
 ;;; NOTE: lexical binding is used as a potential micro-optimization for
 ;;; variable lookups.  This package *should* work whether lexical or dynamic
 ;;; binding is used.
+;;;
+;;; Dedication:  Doing it all for Leyna.
 
 
 ;;; Installation:

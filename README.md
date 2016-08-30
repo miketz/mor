@@ -1,5 +1,8 @@
 # mode on region
 
+Please prefer the documentation in file **mode-on-region.el**.
+This readme file may not be kept up to date.
+
 **mor-mode-on-region** copies a highlighted region to a tmp buffer and
 turns on the mode of your choice.
 
