@@ -37,12 +37,12 @@ Then add the following text to your .emacs or init.el file:
     (global-set-key (kbd "C-c m") #'mor-mode-on-region)
     (global-set-key (kbd "C-c .") #'mor-prev-mode-on-region)
     ;; recommended keybinds for evil users.  Press "m" in visual mode.
-    (eval-after-load "evil"
+    (eval-after-load 'evil
       '(progn
          (define-key evil-visual-state-map (kbd "m") #'mor-mode-on-region)
          (define-key evil-visual-state-map (kbd ".") #'mor-prev-mode-on-region)))
     ;; recommended keybinds for the tmp buffer. Both Vanilla and Evil.
-    (eval-after-load "mode-on-region"
+    (eval-after-load 'mode-on-region
       '(progn
          (define-key mor-tmp-buffer-mode-map (kbd "C-c b" #'mor-copy-back))
          (define-key mor-tmp-buffer-mode-map (kbd "C-c c" #'mor-close-tmp-buffer))))
