@@ -264,7 +264,10 @@ MODE-FN the function to turn on the desired mode."
           "[Copy back]: \\[mor-copy-back]  [Abort]: \\[mor-close-tmp-buffer]"))
 
     (when mor-format-automatically-p
-      (mark-whole-buffer)
+      ;; using `call-interactively' to surpress warning.
+      ;; TODO: look into why `mark-whole-buffer' is discouraged from being
+      ;;       called explictily from lisp code. Use alternative.
+      (call-interactively #'mark-whole-buffer)
       ;; using `call-interactively' because it includes the START/END
       ;; region parameters.
       (call-interactively #'indent-region))))
