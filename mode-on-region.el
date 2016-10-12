@@ -22,7 +22,7 @@
 ;;; Some Emacs compatible books:
 ;;;   -- The `sicp' package on melpa is a great info-mode book.
 ;;;   -- The Practical Common Lisp in html form.  View with eww.
-;;;   -- The Emacs Lisp intro, bundle with Emacs by default.  info-mode.
+;;;   -- The Emacs Lisp intro, bundled with Emacs by default.  info-mode.
 ;;;
 ;;;
 ;;; NOTE: lexical binding is used as a potential micro-optimization for
