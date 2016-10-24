@@ -328,10 +328,10 @@ M for marker."
     ;; guard against dupe call from hook
     (when (and (mor--marker-active-p mor--start)
                (mor--marker-active-p mor--end))
-     (let ((start (marker-position mor--start))
-           (end (marker-position mor--end)))
-       (with-current-buffer mor--orig-buffer
-         (mor--set-region-writeable start end)))))
+      (let ((start (marker-position mor--start))
+            (end (marker-position mor--end)))
+        (with-current-buffer mor--orig-buffer
+          (mor--set-region-writeable start end)))))
 
   ;; clear markers
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
