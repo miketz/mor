@@ -278,7 +278,35 @@ MODE-FN the function to turn on the desired mode."
 WARNING:
 Overwrites the original text."
   (interactive)
-  (mor--finished-with-tmp-buffer t))
+  (if (null mor--orig-buffer) ; guard
+      (message "You must be in a mor-tmp buffer for this to work.")
+    ;; else
+    ;; Cache tmp buffer local values. They will be invisible once we switch
+    ;; back to the orig buffer.
+    (let* ((tmp-buff (current-buffer))
+           (start (marker-position mor--start))
+           (rng (- (marker-position mor--end)
+                   start)))
+
+      (mor--unlock-orig-buffer)
+
+      ;; copy tmp buffer text.
+      (kill-ring-save (point-min) (point-max))
+
+      ;; Switch to orig buff. Buffer local values will be invisible!
+      (funcall mor-switch-buff-fn mor--orig-buffer)
+
+      ;; delete original selected region
+      (goto-char start)
+      (delete-char rng)
+      ;; paste new text
+      (yank)
+
+      ;; kill the tmp buffer becuase mulitple attempts to copy back text
+      ;; will be wrong due to the now invalid start/end location. Will need
+      ;; to use a better way to track start/end before we can allow the
+      ;; tmp buffer to live longer for mulitple copies.
+      (quit-window t (get-buffer-window tmp-buff)))))
 
 (defun mor-close-tmp-buffer ()
   "Kill the tmp buffer and clean up the window if applicable.
@@ -319,45 +347,6 @@ M for marker."
                       'mor--unlock-orig-buffer
                       nil
                       'make-it-local)))
-
-(defun mor--finished-with-tmp-buffer (copy-back-p)
-  "Manages the end of life of the tmp buffer.
-
-When COPY-BACK-P is t, copy text back to the original buffer.
-
-Kills the tmp buffer."
-  (if (null mor--orig-buffer) ; guard
-      (message "You must be in a mor-tmp buffer for this to work.")
-    (progn ; else
-
-      ;; Cache tmp buffer local values. They will be invisible once we switch
-      ;; back to the orig buffer.
-      (let* ((tmp-buff (current-buffer))
-             (start (marker-position mor--start))
-             (rng (- (marker-position mor--end)
-                     start)))
-
-        (mor--unlock-orig-buffer)
-
-        (when copy-back-p
-          ;; tmp buffer text.
-          (kill-ring-save (point-min) (point-max)))
-
-        ;; Switch to orig buff. Buffer local values will be invisible!
-        (funcall mor-switch-buff-fn mor--orig-buffer)
-
-        (when copy-back-p
-          ;; delete original selected region
-          (goto-char start)
-          (delete-char rng)
-          ;; paste new text
-          (yank))
-
-        ;; kill the tmp buffer becuase mulitple attempts to copy back text
-        ;; will be wrong due to the static start/end location. Will need
-        ;; to use a better way to track start/end before we can allow the
-        ;; tmp buffer to live longer for mulitple copies.
-        (quit-window t (get-buffer-window tmp-buff))))))
 
 
 (provide 'mode-on-region)
