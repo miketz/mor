@@ -149,37 +149,26 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
     (when (mor--starts-with-p (buffer-name b) mor--prefix)
       (kill-buffer b))))
 
-(defun mor--set-region-read-only (start end)
-  "Make region read only.
+(defun mor--set-region (state start end)
+  "Make region writeable or readonly based on STATE.
+If STATE=readonly make region readonly.
+If STATE=writeable make region writeable.
 START of region.
 END of region."
-  ;; this function taken from phils
-  ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
-  (let ((modified (buffer-modified-p)))
-    ;; shadow `buffer-undo-list' with dynamic binding. We don't want the
-    ;; read-only text property to be recorded in undo. Otherwise the user
-    ;; may freeze a section of their buffer after an undo!!!!
-    (let ((buffer-undo-list))
-      ;; TODO: fully handle case when region starts at first pos in buffer.
-      (add-text-properties (if (> start 1) (1- start) start)
-                           end '(read-only t)))
-    (set-buffer-modified-p modified)))
-
-(defun mor--set-region-writeable (start end)
-  "Make region writeable.
-START of region.
-END of region."
-  ;; this function taken from phils
+  ;; based on phils function:
   ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
   (let ((modified (buffer-modified-p))
-        (inhibit-read-only t))
+        ;; TODO: fully handle case when region starts at first pos in buffer.
+        (start-adj (if (> start 1) (1- start) start)))
     ;; shadow `buffer-undo-list' with dynamic binding. We don't want the
     ;; read-only text property to be recorded in undo. Otherwise the user
     ;; may freeze a section of their buffer after an undo!!!!
     (let ((buffer-undo-list))
-      ;; TODO: fully handle case when region starts at first pos in buffer.
-      (remove-text-properties (if (> start 1) (1- start) start)
-                              end '(read-only t)))
+      (if (eq state 'readonly)
+          (add-text-properties start-adj end '(read-only t))
+        ;; else make writeable
+        (let ((inhibit-read-only t)) ;; Do i need this?
+          (remove-text-properties start-adj end '(read-only t)))))
     (set-buffer-modified-p modified)))
 
 (defvar mor-mode-fn nil
@@ -237,7 +226,7 @@ MODE-FN the function to turn on the desired mode."
       ;; GUARD: can't make it readonly if the buffer is already readonly.
       (unless buffer-read-only
         ;; lock down region in `orig-buff' until `tmp-buff' is killed
-        (mor--set-region-read-only start end)))
+        (mor--set-region 'readonly start end)))
 
     (deactivate-mark)
 
@@ -331,7 +320,7 @@ M for marker."
       (let ((start (marker-position mor--start))
             (end (marker-position mor--end)))
         (with-current-buffer mor--orig-buffer
-          (mor--set-region-writeable start end)))))
+          (mor--set-region 'writeable start end)))))
 
   ;; clear markers
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
