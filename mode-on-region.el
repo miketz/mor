@@ -85,11 +85,10 @@ being accidentally overwritten.")
   "Function used to switch to the tmp buffer (and back again).
 Choices: `switch-to-buffer-other-window' or `switch-to-buffer'")
 
-;; TODO: use this face. I need to read up on the emacs docs for faces.
-;; (defface mor-readonly-face
-;;   '((t (:inherit region)))
-;;   "Face for the selected region.
-;; When using `mor-readonly-for-extra-protection-p'")
+(defface mor-readonly-face
+  '((t (:inherit region)))
+  "Face for the selected region.
+When using `mor-readonly-for-extra-protection-p'")
 
 
 ;; TODO: Make an option to attempt to preserve the original indent when copying
@@ -165,10 +164,13 @@ END of region."
     ;; may freeze a section of their buffer after an undo!!!!
     (let ((buffer-undo-list))
       (if (eq state 'readonly)
-          (add-text-properties start-adj end '(read-only t))
+          (progn
+            (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
+            (add-text-properties start-adj end '(read-only t)))
         ;; else make writeable
         (let ((inhibit-read-only t)) ;; Do i need this?
-          (remove-text-properties start-adj end '(read-only t)))))
+          (remove-text-properties start-adj end '(read-only t))
+          (remove-overlays start end))))
     (set-buffer-modified-p modified)))
 
 (defvar mor-mode-fn nil
