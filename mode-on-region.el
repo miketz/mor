@@ -64,6 +64,11 @@
 (require 'cl-lib)
 (require 'rx)
 
+(defgroup mode-on-region nil
+  "Mode on region"
+  :prefix "mor-"
+  :group 'tools)
+
 (define-minor-mode mor-tmp-buffer-mode
   "Minor mode to simulate buffer local keybindings for mor tmp buffers.
 Before the this minor mode, tmp buffer funcs were bound globally and
@@ -76,11 +81,6 @@ accidentally calling a function not relevant outside of a tmp buffer."
             ;; No default bindings for now. User will choose them.
             map))
 
-(defvar mor-readonly-for-extra-protection-p t
-  "When t make the selected region of the orig buffer read-only.
-Until the tmp buffer is killed.  This prevents edits in the orig buffer from
-being accidentally overwritten.")
-
 (defvar mor-format-automatically-p nil
   "When t automatically format the copied text via `indent-region'.")
 
@@ -88,10 +88,16 @@ being accidentally overwritten.")
   "Function used to switch to the tmp buffer (and back again).
 Choices: `switch-to-buffer-other-window' or `switch-to-buffer'")
 
+(defvar mor-readonly-for-extra-protection-p t
+  "When t make the selected region of the orig buffer read-only.
+Until the tmp buffer is killed.  This prevents edits in the orig buffer from
+being accidentally overwritten.")
+
 (defface mor-readonly-face
   '((t (:inherit region)))
   "Face for the selected region.
-When using `mor-readonly-for-extra-protection-p'")
+When using `mor-readonly-for-extra-protection-p'"
+  :group 'mode-on-region)
 
 
 ;; TODO: Make an option to attempt to preserve the original indent when copying
