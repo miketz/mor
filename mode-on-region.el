@@ -42,6 +42,9 @@
 ;;;   ;; configure
 ;;;   (setq mor-format-automatically-p nil)
 ;;;   (setq mor-readonly-for-extra-protection-p t)
+;;;   (custom-set-faces
+;;;    `(mor-readonly-face
+;;;      ((t (:background "black" :foreground "red" :strike-through t)))))
 ;;;   ;; recommended keybinds for vanilla Emacs.  Press "C-c m" with text highlighted.
 ;;;   (global-set-key (kbd "C-c m") #'mor-mode-on-region)
 ;;;   (global-set-key (kbd "C-c .") #'mor-prev-mode-on-region)
@@ -53,8 +56,8 @@
 ;;;   ;; recommended keybinds for the tmp buffer.  Both Vanilla and Evil.
 ;;;   (eval-after-load 'mode-on-region
 ;;;     '(progn
-;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c b" #'mor-copy-back))
-;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c c" #'mor-close-tmp-buffer))))
+;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c b") #'mor-copy-back)
+;;;        (define-key mor-tmp-buffer-mode-map (kbd "C-c c") #'mor-close-tmp-buffer)))
 
 
 ;;; Code:

@@ -33,6 +33,9 @@ Then add the following text to your .emacs or init.el file:
     ;; configure
     (setq mor-format-automatically-p nil)
     (setq mor-readonly-for-extra-protection-p t)
+    (custom-set-faces
+     `(mor-readonly-face
+       ((t (:background "black" :foreground "red" :strike-through t)))))
     ;; recommended keybinds for vanilla Emacs.  Press "C-c m" with text highlighted.
     (global-set-key (kbd "C-c m") #'mor-mode-on-region)
     (global-set-key (kbd "C-c .") #'mor-prev-mode-on-region)
@@ -41,8 +44,8 @@ Then add the following text to your .emacs or init.el file:
       '(progn
          (define-key evil-visual-state-map (kbd "m") #'mor-mode-on-region)
          (define-key evil-visual-state-map (kbd ".") #'mor-prev-mode-on-region)))
-    ;; recommended keybinds for the tmp buffer. Both Vanilla and Evil.
+    ;; recommended keybinds for the tmp buffer.  Both Vanilla and Evil.
     (eval-after-load 'mode-on-region
       '(progn
-         (define-key mor-tmp-buffer-mode-map (kbd "C-c b" #'mor-copy-back))
-         (define-key mor-tmp-buffer-mode-map (kbd "C-c c" #'mor-close-tmp-buffer))))
+         (define-key mor-tmp-buffer-mode-map (kbd "C-c b") #'mor-copy-back)
+         (define-key mor-tmp-buffer-mode-map (kbd "C-c c") #'mor-close-tmp-buffer)))
