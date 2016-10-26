@@ -231,7 +231,7 @@ MODE-FN the function to turn on the desired mode."
       ;; GUARD: can't make it readonly if the buffer is already readonly.
       ;; TODO: improve guard to prevent 2 tmp buffers having overlapping
       ;;       regions. Currenlty there is a bug where the overlay will
-      ;;       remain of 2 tmp buffers have overlapping regions.
+      ;;       remain if 2 tmp buffers have overlapping regions.
       (unless buffer-read-only
         ;; lock down region in `orig-buff' until `tmp-buff' is killed
         (mor--set-region 'readonly start end)))
