@@ -100,6 +100,9 @@ When using `mor-readonly-for-extra-protection-p'"
   :group 'mode-on-region)
 
 
+;; TODO: Fix bug where tmp buffer won't die if the orig buffer is killed first.
+;;       Problaby need some guards when attemping to dispose markers in the
+;;       no-longer-existing orig buff.
 ;; TODO: Make an option to attempt to preserve the original indent when copying
 ;;       text back to the original buffer. This could make option
 ;;       `mor-format-automatically-p' more useful becuase when it forces
