@@ -369,11 +369,11 @@ M for marker."
   (progn
     (require 'mode-on-region)
     ;; mor--overlap-p
-    (assert (not (mor--overlap-p 1 10 15 20)))
-    (assert (not (mor--overlap-p 2 10 -1 1)))
-    (assert (mor--overlap-p 2 10 3 4))
-    (assert (mor--overlap-p 2 10 3 40))
-    (assert (mor--overlap-p 2 10 -3 5))
+    (cl-assert (not (mor--overlap-p 1 10 15 20)))
+    (cl-assert (not (mor--overlap-p 2 10 -1 1)))
+    (cl-assert (mor--overlap-p 2 10 3 4))
+    (cl-assert (mor--overlap-p 2 10 3 40))
+    (cl-assert (mor--overlap-p 2 10 -3 5))
     'pass))
 
 ;;; mode-on-region.el ends here
