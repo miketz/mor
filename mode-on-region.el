@@ -363,4 +363,17 @@ M for marker."
 
 (provide 'mode-on-region)
 
+;;; Unit tests.
+(when nil ;; Do not execute.
+  ;; TODO: use ert. For now it's just a progn I manually eval.
+  (progn
+    (require 'mode-on-region)
+    ;; mor--overlap-p
+    (assert (not (mor--overlap-p 1 10 15 20)))
+    (assert (not (mor--overlap-p 2 10 -1 1)))
+    (assert (mor--overlap-p 2 10 3 4))
+    (assert (mor--overlap-p 2 10 3 40))
+    (assert (mor--overlap-p 2 10 -3 5))
+    'pass))
+
 ;;; mode-on-region.el ends here
