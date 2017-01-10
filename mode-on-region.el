@@ -160,6 +160,18 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
     (when (mor--starts-with-p (buffer-name b) mor--prefix)
       (kill-buffer b))))
 
+(defun mor--overlap-p (start1 end1 start2 end2)
+  "Determines if 2 ranges overlap.
+START1 = range 1 start.
+END1 = range 1 end.
+START2 = range 2 start.
+END2 = range 2 end."
+  (cl-labels ((between? (start end loc)
+                        (and (>= loc start)
+                             (<= loc end))))
+    (or (between? start1 end1 start2)
+        (between? start1 end1 end2))))
+
 (defun mor--set-region (state start end)
   "Make region writeable or readonly based on STATE.
 If STATE=readonly make region readonly.
