@@ -28,6 +28,8 @@
 ;;; NOTE: lexical binding is used as a potential micro-optimization for
 ;;; variable lookups.  This package *should* work whether lexical or dynamic
 ;;; binding is used.
+;;; **This is no longer true. Lexical binding is now used as way of providing
+;;; private variables. It is no longer just a micro-optimization.
 ;;;
 ;;; Dedication:  Doing it all for Leyna.
 
@@ -119,8 +121,6 @@ When using `mor-readonly-for-extra-protection-p'"
 
 (defconst mor--prefix "mor-tmp-"
   "Prefix used for tmp buffer names.")
-(defvar mor--counter 0
-  "Sequential counter used to generate unique names for tmp buffers.")
 
 (defvar mor--prev-mode-fn nil
   "The previous mode used.
@@ -137,15 +137,18 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
   "End of region. Implemented via a marker.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
 
-
-(defun mor--gen-buffer-name ()
-  "Generate a unique buffer name."
-  (prog1
-      (concat mor--prefix
-              (buffer-name (current-buffer))
-              "-"
-              (int-to-string mor--counter))
-    (cl-incf mor--counter)))
+;; `seq' is a sequential counter used to generate unique names for tmp
+;; buffers. Make it private by let-binding it and accessing it with lexical
+;; scope.
+(let ((seq 0))
+  (defun mor--gen-buffer-name ()
+    "Generate a unique buffer name."
+    (prog1
+        (concat mor--prefix
+                (buffer-name (current-buffer))
+                "-"
+                (int-to-string seq))
+      (cl-incf seq))))
 
 (defun mor--starts-with-p (string prefix)
   "Return t if STRING begins with PREFIX."
