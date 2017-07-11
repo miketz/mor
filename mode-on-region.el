@@ -119,9 +119,6 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; TODO: Optionally create a tmp file on disk. Useful for features that
 ;;       require a file on disk (some linters, etc).
 
-(defconst mor--prefix "mor-tmp-"
-  "Prefix used for tmp buffer names.")
-
 (defvar mor--prev-mode-fn nil
   "The previous mode used.
 Used by `mor-prev-mode-on-region'")
@@ -137,31 +134,34 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
   "End of region. Implemented via a marker.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
 
-;; `seq' is a sequential counter used to generate unique names for tmp
-;; buffers. Make it private by let-binding it and accessing it with lexical
-;; scope.
-(let ((seq 0))
-  (defun mor--gen-buffer-name ()
-    "Generate a unique buffer name."
-    (prog1
-        (concat mor--prefix
-                (buffer-name (current-buffer))
-                "-"
-                (int-to-string seq))
-      (cl-incf seq))))
+;; `mor--prefix' used for tmp buffer names. Make it private by let-binding it
+;; and accessing it with lexical scope.
+(let ((mor--prefix "mor-tmp-"))
+  (defun mor-kill-tmp-buffers ()
+    "Delete the junk tmp buffers."
+    (interactive)
+    (dolist (b (buffer-list))
+      (when (mor--starts-with-p (buffer-name b) mor--prefix)
+        (kill-buffer b))))
+
+ ;; `seq' is a sequential counter used to generate unique names for tmp
+ ;; buffers. Make it private by let-binding it and accessing it with lexical
+ ;; scope.
+ (let ((seq 0))
+   (defun mor--gen-buffer-name ()
+     "Generate a unique buffer name."
+     (prog1
+         (concat mor--prefix
+                 (buffer-name (current-buffer))
+                 "-"
+                 (int-to-string seq))
+       (cl-incf seq)))))
 
 (defun mor--starts-with-p (string prefix)
   "Return t if STRING begins with PREFIX."
   (and (string-match (rx-to-string `(: bos ,prefix) t)
                      string)
        t))
-
-(defun mor-kill-tmp-buffers ()
-  "Delete the junk tmp buffers."
-  (interactive)
-  (dolist (b (buffer-list))
-    (when (mor--starts-with-p (buffer-name b) mor--prefix)
-      (kill-buffer b))))
 
 (defun mor--overlap-p (start1 end1 start2 end2)
   "Determines if 2 ranges overlap.
