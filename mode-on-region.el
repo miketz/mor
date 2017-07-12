@@ -119,11 +119,6 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; TODO: Optionally create a tmp file on disk. Useful for features that
 ;;       require a file on disk (some linters, etc).
 
-(defvar mor--prev-mode-fn nil
-  "The previous mode used.
-Used by `mor-prev-mode-on-region'")
-
-
 (defvar-local mor--orig-buffer nil
   "The original buffer you highted some text in.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
@@ -223,69 +218,73 @@ Region is between START and END inclusive."
                                                     #'commandp)
                                   nil t)))))
 
+;; `mor--prev-mode-fn' is the the previous mode used. Make it private by
+;; let-binding it and accessing it with lexical scope.
+(let ((mor--prev-mode-fn nil))
+
 ;;;###autoload
-(defun mor-prev-mode-on-region (start end)
-  "Same as `mor-mode-on-region' but use the previous mode.
+  (defun mor-prev-mode-on-region (start end)
+    "Same as `mor-mode-on-region' but use the previous mode.
 Previous mode is saved in variable `mor--prev-mode-fn'.
 Region is between START and END inclusive."
-  (interactive "r")
-  (if (null mor--prev-mode-fn) ; guard against early usage.
-      (message "No previously used mode found.")
-    (mor--mode-on-region start
-                         end
-                         mor--prev-mode-fn)))
+    (interactive "r")
+    (if (null mor--prev-mode-fn) ; guard against early usage.
+        (message "No previously used mode found.")
+      (mor--mode-on-region start
+                           end
+                           mor--prev-mode-fn)))
 
-(defun mor--mode-on-region (start end mode-fn)
-  "The core function to copy region to a new buffer.
+  (defun mor--mode-on-region (start end mode-fn)
+    "The core function to copy region to a new buffer.
 Region is between START and END.
 MODE-FN the function to turn on the desired mode."
 
-  ;; remember the mode for `mor-prev-mode-on-region'
-  (setq mor--prev-mode-fn mode-fn)
+    ;; remember the mode for `mor-prev-mode-on-region'
+    (setq mor--prev-mode-fn mode-fn)
 
-  ;; save buffer and region coordinates to copy the text back in later.
-  (let ((orig-buff (current-buffer))
-        (tmp-buff (mor--gen-buffer-name)))
-
-
-    (kill-ring-save start end) ;; copy higlighted text
+    ;; save buffer and region coordinates to copy the text back in later.
+    (let ((orig-buff (current-buffer))
+          (tmp-buff (mor--gen-buffer-name)))
 
 
-    (when mor-readonly-for-extra-protection-p
-      ;; GUARD: can't make it readonly if the buffer is already readonly.
-      ;; TODO: improve guard to prevent 2 tmp buffers having overlapping
-      ;;       regions. Currenlty there is a bug where the overlay will
-      ;;       remain if 2 tmp buffers have overlapping regions.
-      (unless buffer-read-only
-        ;; lock down region in `orig-buff' until `tmp-buff' is killed
-        (mor--set-region 'readonly start end)))
+      (kill-ring-save start end) ;; copy higlighted text
 
-    (deactivate-mark)
 
-    (funcall mor-switch-buff-fn tmp-buff)
-    (yank)              ;; paste text
-    ;; ignore errors before turning on mode, otherwise mor keybinds won't be
-    ;; set. Like "C-c c" to close.
-    (with-demoted-errors "Error: %S"
-      (funcall mode-fn)) ;; turn on the dedicated mode.
-    (with-current-buffer tmp-buff
-      ;; NOTE: these buffer-local vars must be set AFTER `mode-fn' is
-      ;; called. Because major modes wipe buffer local vars.
-      (setq mor--orig-buffer orig-buff
-            ;; track start/end with markers. Markers will automatically "move"
-            ;; as the text around them is changed.
-            mor--start (set-marker (make-marker) start orig-buff)
-            mor--end (set-marker (make-marker) end orig-buff)))
+      (when mor-readonly-for-extra-protection-p
+        ;; GUARD: can't make it readonly if the buffer is already readonly.
+        ;; TODO: improve guard to prevent 2 tmp buffers having overlapping
+        ;;       regions. Currenlty there is a bug where the overlay will
+        ;;       remain if 2 tmp buffers have overlapping regions.
+        (unless buffer-read-only
+          ;; lock down region in `orig-buff' until `tmp-buff' is killed
+          (mor--set-region 'readonly start end)))
 
-    (mor-tmp-buffer-mode) ; for keybinds.
+      (deactivate-mark)
 
-    ;; show a header with useful keybind info. Like `org-src-mode' does.
-    (set (make-local-variable 'header-line-format)
-         (substitute-command-keys
-          "[Copy back]: \\[mor-copy-back]  [Abort]: \\[mor-close-tmp-buffer]"))
+      (funcall mor-switch-buff-fn tmp-buff)
+      (yank)              ;; paste text
+      ;; ignore errors before turning on mode, otherwise mor keybinds won't be
+      ;; set. Like "C-c c" to close.
+      (with-demoted-errors "Error: %S"
+        (funcall mode-fn)) ;; turn on the dedicated mode.
+      (with-current-buffer tmp-buff
+        ;; NOTE: these buffer-local vars must be set AFTER `mode-fn' is
+        ;; called. Because major modes wipe buffer local vars.
+        (setq mor--orig-buffer orig-buff
+              ;; track start/end with markers. Markers will automatically "move"
+              ;; as the text around them is changed.
+              mor--start (set-marker (make-marker) start orig-buff)
+              mor--end (set-marker (make-marker) end orig-buff)))
 
-    (when mor-format-automatically-p
-      (indent-region (point-min) (point-max)))))
+      (mor-tmp-buffer-mode) ; for keybinds.
+
+      ;; show a header with useful keybind info. Like `org-src-mode' does.
+      (set (make-local-variable 'header-line-format)
+           (substitute-command-keys
+            "[Copy back]: \\[mor-copy-back]  [Abort]: \\[mor-close-tmp-buffer]"))
+
+      (when mor-format-automatically-p
+        (indent-region (point-min) (point-max))))))
 
 (defun mor-copy-back ()
   "Copy the tmp buffer text back the original buffer.
