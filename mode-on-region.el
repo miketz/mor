@@ -28,8 +28,8 @@
 ;;; NOTE: lexical binding is used as a potential micro-optimization for
 ;;; variable lookups.  This package *should* work whether lexical or dynamic
 ;;; binding is used.
-;;; **This is no longer true. Lexical binding is now used as way of providing
-;;; private variables. It is no longer just a micro-optimization.
+;;; **This is no longer true.  Lexical binding is now used as way of providing
+;;; private variables.  It is no longer just a micro-optimization.
 ;;;
 ;;; Dedication:  Doing it all for Leyna.
 
