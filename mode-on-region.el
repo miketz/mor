@@ -326,9 +326,15 @@ MODE-FN the function to turn on the desired mode."
 WARNING:
 Overwrites the original text."
   (interactive)
-  (if (null mor--orig-buffer) ; guard
-      (message "You must be in a mor-tmp buffer for this to work.")
-    ;; else
+  (cond
+   ;; guard 1. validate we are in a mor-tmp buffer
+   ((null mor--orig-buffer)
+    (message "You must be in a mor-tmp buffer for this to work."))
+   ;; guard 2. ensure orig-buff is not in read-only mode
+   ((with-current-buffer mor--orig-buffer buffer-read-only)
+    (message "Orignal buffer is read-only. Cannot copy back."))
+   ;; else. Guards passed
+   (t
     ;; Cache tmp buffer local values. They will be invisible once we switch
     ;; back to the orig buffer.
     (let* ((tmp-buff (current-buffer))
@@ -354,7 +360,7 @@ Overwrites the original text."
       ;; will be wrong due to the now invalid start/end location. Will need
       ;; to use a better way to track start/end before we can allow the
       ;; tmp buffer to live longer for mulitple copies.
-      (quit-window t (get-buffer-window tmp-buff)))))
+      (quit-window t (get-buffer-window tmp-buff))))))
 
 (defun mor-close-tmp-buffer ()
   "Kill the tmp buffer and clean up the window if applicable.
@@ -371,20 +377,18 @@ M for marker."
 
 (defun mor--unlock-orig-buffer ()
   "Unlock region in the original buffer."
-
   (when mor-readonly-for-extra-protection-p
     ;; guard against dupe call from hook
     (when (and (mor--marker-active-p mor--start)
                (mor--marker-active-p mor--end))
       (let ((start (marker-position mor--start))
             (end (marker-position mor--end))
+            (orig-buff mor--orig-buffer)
             (tmp-buff (current-buffer)))
-        ;; NOTE: `with-current-buffer' wipes out the value of buffer-local
-        ;; `mor--orig-buffer'. Better to use that closer to the point of use
-        ;; anyway.
-        ;; (with-current-buffer mor--orig-buffer
-        ;;   (mor--set-region 'writeable start end mor--orig-buffer tmp-buff))
-        (mor--set-region 'writeable start end mor--orig-buffer tmp-buff))))
+        (with-current-buffer mor--orig-buffer
+          ;; GUARD: if the whole buffer was readonly don't bother toggling.
+          (unless buffer-read-only
+            (mor--set-region 'writeable start end orig-buff tmp-buff))))))
 
   ;; clear markers
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
