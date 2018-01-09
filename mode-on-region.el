@@ -119,6 +119,7 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; TODO: Optionally create a tmp file on disk. Useful for features that
 ;;       require a file on disk (some linters, etc).
 
+;; Local to the tmp-buff
 (defvar-local mor--orig-buffer nil
   "The original buffer you highted some text in.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
@@ -128,6 +129,36 @@ Used in tmp buffer to transfer the modified text back to the original buffer.")
 (defvar-local mor--end nil
   "End of region. Implemented via a marker.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
+
+
+;; Local to the orig-buff
+(defvar-local mor--overlays '()
+  "Association list of overlays in the orig-buffer.
+Ties each overlay to the relevant tmp buffer, so the overlay can be deleted
+when the tmp-buffer is deleted.
+Conceptually it would look something like this:
+    ((tmp-buff1 . ov1)
+     (tmp-buff2 . ov2))")
+
+(defun mor--add-overlay-readonly (orig-buff tmp-buff start end)
+  ;; ensure buffer local var mor--overlays is set for orig-buff
+  (with-current-buffer orig-buff
+    (let ((ov (make-overlay start end orig-buff)))
+      (overlay-put ov 'face 'mor-readonly-face)
+      ;; associate ov with tmp-buff. So we can later delete ov when tmp-buff is
+      ;; deleted.
+      (push `(,tmp-buff . ,ov) mor--overlays)
+      ;; return ov for convenience.
+      ov)))
+
+(defun mor--delete-overlay-readonly (orig-buff tmp-buff)
+  ;; ensure buffer local var mor--overlays is set for orig-buff
+  (with-current-buffer orig-buff
+    (let* ((entry (assoc tmp-buff mor--overlays))
+           (ov (cdr entry)))
+      (delete-overlay ov)
+      ;; remove entry from assoc list
+      (setq mor--overlays (remove entry mor--overlays)))))
 
 ;; `mor--prefix' used for tmp buffer names. Make it private by let-binding it
 ;; and accessing it with lexical scope.
@@ -170,30 +201,33 @@ END2 = range 2 end."
     (or (between? start1 end1 start2)
         (between? start1 end1 end2))))
 
-(defun mor--set-region (state start end)
+(defun mor--set-region (state start end orig-buff tmp-buff)
   "Make region writeable or readonly based on STATE.
 If STATE=readonly make region readonly.
 If STATE=writeable make region writeable.
 START of region.
 END of region."
-  ;; based on phils function:
-  ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
-  (let ((modified (buffer-modified-p))
-        ;; TODO: fully handle case when region starts at first pos in buffer.
-        (start-adj (if (> start 1) (1- start) start)))
-    ;; shadow `buffer-undo-list' with dynamic binding. We don't want the
-    ;; read-only text property to be recorded in undo. Otherwise the user
-    ;; may freeze a section of their buffer after an undo!!!!
-    (let ((buffer-undo-list))
-      (if (eq state 'readonly)
-          (progn
-            (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
-            (add-text-properties start-adj end '(read-only t)))
-        ;; else make writeable
-        (let ((inhibit-read-only t)) ;; Do i need this?
-          (remove-text-properties start-adj end '(read-only t))
-          (remove-overlays start end))))
-    (set-buffer-modified-p modified)))
+  (with-current-buffer orig-buff
+    ;; based on phils function:
+    ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
+    (let ((modified (buffer-modified-p))
+          ;; TODO: fully handle case when region starts at first pos in buffer.
+          (start-adj (if (> start 1) (1- start) start)))
+      ;; shadow `buffer-undo-list' with dynamic binding. We don't want the
+      ;; read-only text property to be recorded in undo. Otherwise the user
+      ;; may freeze a section of their buffer after an undo!!!!
+      (let ((buffer-undo-list))
+        (if (eq state 'readonly)
+            (progn
+              (mor--add-overlay-readonly orig-buff tmp-buff start end)
+              ;; (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
+              (add-text-properties start-adj end '(read-only t)))
+          ;; else make writeable
+          (let ((inhibit-read-only t)) ;; Do i need this?
+            (remove-text-properties start-adj end '(read-only t))
+            ;; (remove-overlays start end)
+            (mor--delete-overlay-readonly orig-buff tmp-buff))))
+      (set-buffer-modified-p modified))))
 
 (defvar mor-mode-fn nil
   "Making mode-fn a dynamic variable.
@@ -244,7 +278,7 @@ MODE-FN the function to turn on the desired mode."
 
     ;; save buffer and region coordinates to copy the text back in later.
     (let ((orig-buff (current-buffer))
-          (tmp-buff (mor--gen-buffer-name)))
+          (tmp-buff (get-buffer-create (mor--gen-buffer-name))))
 
 
       (kill-ring-save start end) ;; copy higlighted text
@@ -257,7 +291,7 @@ MODE-FN the function to turn on the desired mode."
         ;;       remain if 2 tmp buffers have overlapping regions.
         (unless buffer-read-only
           ;; lock down region in `orig-buff' until `tmp-buff' is killed
-          (mor--set-region 'readonly start end)))
+          (mor--set-region 'readonly start end orig-buff tmp-buff)))
 
       (deactivate-mark)
 
@@ -343,9 +377,14 @@ M for marker."
     (when (and (mor--marker-active-p mor--start)
                (mor--marker-active-p mor--end))
       (let ((start (marker-position mor--start))
-            (end (marker-position mor--end)))
-        (with-current-buffer mor--orig-buffer
-          (mor--set-region 'writeable start end)))))
+            (end (marker-position mor--end))
+            (tmp-buff (current-buffer)))
+        ;; NOTE: `with-current-buffer' wipes out the value of buffer-local
+        ;; `mor--orig-buffer'. Better to use that closer to the point of use
+        ;; anyway.
+        ;; (with-current-buffer mor--orig-buffer
+        ;;   (mor--set-region 'writeable start end mor--orig-buffer tmp-buff))
+        (mor--set-region 'writeable start end mor--orig-buffer tmp-buff))))
 
   ;; clear markers
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
