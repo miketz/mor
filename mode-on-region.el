@@ -83,17 +83,23 @@ accidentally calling a function not relevant outside of a tmp buffer."
             ;; No default bindings for now. User will choose them.
             map))
 
-(defvar mor-format-automatically-p nil
-  "When t automatically format the copied text via `indent-region'.")
+(defcustom mor-format-automatically-p nil
+  "When t automatically format the copied text via `indent-region'."
+  :type 'boolean
+  :group 'mode-on-region)
 
-(defvar mor-switch-buff-fn #'switch-to-buffer-other-window
+(defcustom mor-switch-buff-fn #'switch-to-buffer-other-window
   "Function used to switch to the tmp buffer (and back again).
-Choices: `switch-to-buffer-other-window' or `switch-to-buffer'")
+Choices: `switch-to-buffer-other-window' or `switch-to-buffer'"
+  :type 'function
+  :group 'mode-on-region)
 
-(defvar mor-readonly-for-extra-protection-p t
+(defcustom mor-readonly-for-extra-protection-p t
   "When t make the selected region of the orig buffer read-only.
 Until the tmp buffer is killed.  This prevents edits in the orig buffer from
-being accidentally overwritten.")
+being accidentally overwritten."
+  :type 'boolean
+  :group 'mode-on-region)
 
 (defface mor-readonly-face
   '((t (:inherit region)))
