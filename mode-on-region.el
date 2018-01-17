@@ -147,7 +147,7 @@ Conceptually it would look something like this:
      (tmp-buff2 . ov2))")
 
 (defun mor--add-overlay-readonly (orig-buff tmp-buff start end)
-  "Add readonly overlay in ORIG-BUFF and associated overlay with TMP-BUFF.
+  "Add readonly overlay in ORIG-BUFF and associate overlay with TMP-BUFF.
 START of overlay region.
 END of overlay region."
   ;; ensure buffer local var mor--overlays is set for orig-buff
