@@ -72,8 +72,8 @@
   :group 'tools)
 
 (define-minor-mode mor-tmp-buffer-mode
-  "Minor mode to simulate buffer local keybindings for mor tmp buffers.
-Before the this minor mode, tmp buffer funcs were bound globally and
+  "Minor mode to simulate buffer local keybinds in mor tmp buffers.
+Before this minor mode, tmp buffer funcs were bound globally and
 required guards to verify the user was inside a mor tmp buffer.
 NOTE: the guards still exist for needed protection.  The minor mode
 keybinds just help avoid keybind pollution, and reduce the risk of
@@ -147,6 +147,9 @@ Conceptually it would look something like this:
      (tmp-buff2 . ov2))")
 
 (defun mor--add-overlay-readonly (orig-buff tmp-buff start end)
+  "Add readonly overlay in ORIG-BUFF and associated overlay with TMP-BUFF.
+START of overlay region.
+END of overlay region."
   ;; ensure buffer local var mor--overlays is set for orig-buff
   (with-current-buffer orig-buff
     (let ((ov (make-overlay start end orig-buff)))
@@ -158,6 +161,7 @@ Conceptually it would look something like this:
       ov)))
 
 (defun mor--delete-overlay-readonly (orig-buff tmp-buff)
+  "Delete the readonly overlay in ORIG-BUFF associated with TMP-BUFF."
   ;; ensure buffer local var mor--overlays is set for orig-buff
   (with-current-buffer orig-buff
     (let* ((entry (assoc tmp-buff mor--overlays))
@@ -212,7 +216,10 @@ END2 = range 2 end."
 If STATE=readonly make region readonly.
 If STATE=writeable make region writeable.
 START of region.
-END of region."
+END of region.
+ORIG-BUFF is the original buffer to make writeable or readonly.
+TMP-BUFF is associated with any overlays created so the overlays can be deleted
+when TMP-BUFF is deleted."
   (with-current-buffer orig-buff
     ;; based on phils function:
     ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
