@@ -218,11 +218,13 @@ START1 = range 1 start.
 END1 = range 1 end.
 START2 = range 2 start.
 END2 = range 2 end."
-  (cl-labels ((between? (start end loc)
-                        (and (>= loc start)
-                             (<= loc end))))
+  (cl-labels ((between? (rng-start rng-end point)
+                        (and (>= point rng-start)
+                             (<= point rng-end))))
     (or (between? start1 end1 start2)
-        (between? start1 end1 end2))))
+        (between? start1 end1 end2)
+        (between? start2 end2 start1)
+        (between? start2 end2 end1))))
 
 (defun mor--set-region (state start end orig-buff tmp-buff)
   "Make region writeable or readonly based on STATE.
@@ -445,6 +447,10 @@ M for marker."
     (cl-assert (mor--overlap-p 2 10 3 4))
     (cl-assert (mor--overlap-p 2 10 3 40))
     (cl-assert (mor--overlap-p 2 10 -3 5))
+    (cl-assert (mor--overlap-p 5 20    ; big region
+                               10 12)) ; little region completely inside big.
+    (cl-assert (mor--overlap-p 10 12  ; little region
+                               5 20)) ; big region completely covering little.
     'pass))
 
 ;;; mode-on-region.el ends here
