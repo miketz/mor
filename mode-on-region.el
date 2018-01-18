@@ -178,7 +178,8 @@ END of overlay region."
     (interactive)
     (dolist (b (buffer-list))
       (when (mor--starts-with-p (buffer-name b) mor--prefix)
-        (kill-buffer b))))
+        (kill-buffer b)))) ; NOTE: overlays are deleted automatically when the
+                           ;       tmp-buffer is killed.
 
  ;; `seq' is a sequential counter used to generate unique names for tmp
  ;; buffers. Make it private by let-binding it and accessing it with lexical
@@ -192,6 +193,18 @@ END of overlay region."
                  "-"
                  (int-to-string seq))
        (cl-incf seq)))))
+
+(defun mor-kill-overlays ()
+  "Delete all overlays in the orig buffer.
+You must be in the orig-buffer when you call this. This is mostly just to clean
+up any any orphaned overlays.  In theory this should never happen, but in a
+bug-case where the tmp-buffer creation failed, we can't rely on the tmp-buffer
+deletion hook to remove the overlay."
+  (interactive)
+  (dolist (entry mor--overlays)
+    (let ((ov (cdr entry)))
+      (delete-overlay ov)
+      (setq mor--overlays (remove entry mor--overlays)))))
 
 (defun mor--starts-with-p (string prefix)
   "Return t if STRING begins with PREFIX."
