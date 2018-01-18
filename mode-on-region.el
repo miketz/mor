@@ -174,13 +174,13 @@ END of overlay region."
 ;; `mor--prefix' used for tmp buffer names. Make it private by let-binding it
 ;; and accessing it with lexical scope.
 (let ((mor--prefix "mor-tmp-"))
-  (defun mor-kill-tmp-buffers ()
-    "Delete the junk tmp buffers."
-    (interactive)
-    (dolist (b (buffer-list))
-      (when (mor--starts-with-p (buffer-name b) mor--prefix)
-        (kill-buffer b)))) ; NOTE: overlays are deleted automatically when the
-                           ;       tmp-buffer is killed.
+  (defun mor-get-tmp-bufffers ()
+    "Return a list of the mor tmp buffers."
+    (let ((lst '()))
+      (dolist (b (buffer-list))
+        (when (mor--starts-with-p (buffer-name b) mor--prefix)
+          (push b lst)))
+      lst))
 
  ;; `seq' is a sequential counter used to generate unique names for tmp
  ;; buffers. Make it private by let-binding it and accessing it with lexical
@@ -195,6 +195,14 @@ END of overlay region."
                  (int-to-string seq))
        (cl-incf seq)))))
 
+(defun mor-kill-tmp-buffers ()
+  "Delete the junk tmp buffers."
+  (interactive)
+  (dolist (b (mor-get-tmp-bufffers))
+    (kill-buffer b))) ; NOTE: overlays are deleted automatically when the
+                      ;       tmp-buffer is killed.
+
+;; TODO: clean up orphaned "read-only" sections too, not just the overlay.
 (defun mor-kill-overlays ()
   "Delete all overlays in the orig buffer.
 You must be in the orig-buffer when you call this. This is mostly just to clean
@@ -297,10 +305,26 @@ Region is between START and END inclusive."
                            end
                            mor--prev-mode-fn)))
 
-  (defun mor--mode-on-region (start end mode-fn)
+  ;; Using `cl-defun' for the `return-from' feature. An early return feels
+  ;; better than nesting code in a conditional statement.
+  (cl-defun mor--mode-on-region (start end mode-fn)
     "The core function to copy region to a new buffer.
 Region is between START and END.
 MODE-FN the function to turn on the desired mode."
+
+    ;; GUARD: Don't allow the new region to overlap another mor region.
+    (dolist (b (mor-get-tmp-bufffers))
+      (with-current-buffer b
+        ;; TODO: fix off-by-1 issue where it wrongly detects overlap immediately
+        ;; after an existing region. But detects wrongly on the side of safety
+        ;; (overlap is prevented) so no rush to fix.
+        (when (mor--overlap-p start end
+                              (marker-position mor--start)
+                              (marker-position mor--end))
+          ;; return early. Overlaps an exisiting mor region.
+          (message "Overlap with another mor region detected. Abort!")
+          (return-from mor--mode-on-region))))
+
 
     ;; remember the mode for `mor-prev-mode-on-region'
     (setq mor--prev-mode-fn mode-fn)
