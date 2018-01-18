@@ -166,7 +166,8 @@ END of overlay region."
   (with-current-buffer orig-buff
     (let* ((entry (assoc tmp-buff mor--overlays))
            (ov (cdr entry)))
-      (delete-overlay ov)
+      (unless (null ov)
+        (delete-overlay ov))
       ;; remove entry from assoc list
       (setq mor--overlays (remove entry mor--overlays)))))
 
