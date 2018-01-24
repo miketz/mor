@@ -205,7 +205,7 @@ END of overlay region."
 ;; TODO: clean up orphaned "read-only" sections too, not just the overlay.
 (defun mor-kill-overlays ()
   "Delete all overlays in the orig buffer.
-You must be in the orig-buffer when you call this. This is mostly just to clean
+You must be in the orig-buffer when you call this.  This is mostly just to clean
 up any any orphaned overlays.  In theory this should never happen, but in a
 bug-case where the tmp-buffer creation failed, we can't rely on the tmp-buffer
 deletion hook to remove the overlay."
