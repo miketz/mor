@@ -305,7 +305,7 @@ Region is between START and END inclusive."
                            end
                            mor--prev-mode-fn)))
 
-  ;; Using `cl-defun' for the `return-from' feature. An early return feels
+  ;; Using `cl-defun' for the `cl-return-from' feature. An early return feels
   ;; better than nesting code in a conditional statement.
   (cl-defun mor--mode-on-region (start end mode-fn)
     "The core function to copy region to a new buffer.
@@ -329,7 +329,7 @@ MODE-FN the function to turn on the desired mode."
                                 (marker-position mor--end))
             ;; return early. Overlaps an exisiting mor region.
             (message "Overlap with another mor region detected. Abort!")
-            (return-from mor--mode-on-region)))))
+            (cl-return-from mor--mode-on-region)))))
 
 
     ;; remember the mode for `mor-prev-mode-on-region'
