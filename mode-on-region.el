@@ -315,11 +315,11 @@ MODE-FN the function to turn on the desired mode."
     ;; GUARD: Don't allow the new region to overlap another mor region.
     (let ((orig-buff (current-buffer)))
       ;; only loop over tmp buffers belonging to the current orig-buff
-      (dolist (b (remove-if-not (lambda (buff)
-                                  (eq orig-buff
-                                      (with-current-buffer buff
-                                        mor--orig-buffer)))
-                  (mor-get-tmp-bufffers)))
+      (dolist (b (cl-remove-if-not (lambda (buff)
+                                     (eq orig-buff
+                                         (with-current-buffer buff
+                                           mor--orig-buffer)))
+                                   (mor-get-tmp-bufffers)))
         (with-current-buffer b
           ;; TODO: fix off-by-1 issue where it wrongly detects overlap immediately
           ;; after an existing region. But detects wrongly on the side of safety
