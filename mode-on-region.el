@@ -479,6 +479,14 @@ M for marker."
                                10 12)) ; little region completely inside big.
     (cl-assert (mor--overlap-p 10 12  ; little region
                                5 20)) ; big region completely covering little.
+    ;; regions touching, but not overlapping
+    (cl-assert (not (mor--overlap-p 1 2
+                                    3 4)))
+    (cl-assert (not (mor--overlap-p 3 4
+                                    1 2)))
+    ;; overlapping by 1
+    (cl-assert (mor--overlap-p 1 2
+                               2 3))
     'pass))
 
 ;;; mode-on-region.el ends here
