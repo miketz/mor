@@ -174,7 +174,7 @@ END of overlay region."
 ;; `mor--prefix' used for tmp buffer names. Make it private by let-binding it
 ;; and accessing it with lexical scope.
 (let ((mor--prefix "mor-tmp-"))
-  (defun mor-get-tmp-bufffers ()
+  (defun mor-get-tmp-buffers ()
     "Return a list of the mor tmp buffers."
     (let ((lst '()))
       (dolist (b (buffer-list))
@@ -198,7 +198,7 @@ END of overlay region."
 (defun mor-kill-tmp-buffers ()
   "Delete the junk tmp buffers."
   (interactive)
-  (dolist (b (mor-get-tmp-bufffers))
+  (dolist (b (mor-get-tmp-buffers))
     (kill-buffer b))) ; NOTE: overlays are deleted automatically when the
                       ;       tmp-buffer is killed.
 
@@ -319,7 +319,7 @@ MODE-FN the function to turn on the desired mode."
                                      (eq orig-buff
                                          (with-current-buffer buff
                                            mor--orig-buffer)))
-                                   (mor-get-tmp-bufffers)))
+                                   (mor-get-tmp-buffers)))
         (with-current-buffer b
           ;; TODO: fix off-by-1 issue where it wrongly detects overlap immediately
           ;; after an existing region. But detects wrongly on the side of safety
