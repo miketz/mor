@@ -66,6 +66,25 @@
 (require 'cl-lib)
 (require 'rx)
 
+(defconst mor--minimal-emacs "24.1"
+  "Minimum Emacs version needed to run mode-on-region.
+This version introduced lexical binding.")
+
+(defun mor-assert-dependencies ()
+  "Check for required dependencies.  Warn the user if any are missing."
+  (when (version< emacs-version
+                  mor--minimal-emacs)
+    (display-warning
+     'mode-on-region
+     (format "mode-on-region requires Emacs >= %s, you are using %s."
+             mor--minimal-emacs emacs-version)
+     :error)))
+
+;; Invoke dependency check at load time of mode-on-region.
+;; Only one check.  Don't prevent use of the feature.  Just warn then let the
+;; chips fall where they may.
+(mor-assert-dependencies)
+
 (defgroup mode-on-region nil
   "Mode on region"
   :prefix "mor-"
