@@ -14,7 +14,7 @@
 ;;; Abandon your edits with `mor-close-tmp-buffer' or C-c c.
 ;;;                                                   mnemonic: close
 ;;;
-;;; This package is useful to work with code in mutli-lanuage files.  Such as
+;;; This package is useful to work with code in multi-lanuage files.  Such as
 ;;; javascript, css, and html mixed in one file.
 ;;;
 ;;; It's also useful to interact with code in tech books; while viewing via
