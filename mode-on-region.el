@@ -14,19 +14,19 @@
 ;;; Abandon your edits with `mor-close-tmp-buffer' or C-c c.
 ;;;                                                   mnemonic: close
 ;;;
-;;; This package is useful to work with code in multi-lanuage files.  Such as
-;;; javascript, css, and html mixed in one file.
+;;; This package is useful to work with code in multi-language files.  Such as
+;;; JavaScript, CSS, and HTML mixed in one file.
 ;;;
 ;;; It's also useful to interact with code in tech books; while viewing via
 ;;; eww-mode, text-mode, info-mode, etc.
 ;;; Some Emacs compatible books:
 ;;;   -- The `sicp' package on melpa is a great info-mode book.
-;;;   -- The Practical Common Lisp in html form.  View with eww.
+;;;   -- The Practical Common Lisp in HTML form.  View with eww.
 ;;;   -- The Emacs Lisp intro, bundled with Emacs by default.  info-mode.
 ;;;
 ;;;
 ;;; NOTE: lexical binding is used as a potential micro-optimization for
-;;; variable lookups.  This package *should* work whether lexical or dynamic
+;;; variable look-ups.  This package *should* work whether lexical or dynamic
 ;;; binding is used.
 ;;; **This is no longer true.  Lexical binding is now used as way of providing
 ;;; private variables.  It is no longer just a micro-optimization.
@@ -44,7 +44,7 @@
 ;;; ;; Recommended keybinds for vanilla Emacs.  Press "C-c m" with text highlighted.
 ;;; (global-set-key (kbd "C-c m") #'mor-mode-on-region)
 ;;; (global-set-key (kbd "C-c .") #'mor-prev-mode-on-region)
-;;; ;; Recommended keybinds for evil users.  Press "m" in visual mode.
+;;; ;; Recommended key binds for evil users.  Press "m" in visual mode.
 ;;; (eval-after-load 'evil
 ;;;   '(progn
 ;;;      (define-key evil-visual-state-map (kbd "m") #'mor-mode-on-region)
@@ -57,7 +57,7 @@
 ;;;      (custom-set-faces
 ;;;       `(mor-readonly-face
 ;;;         ((t (:background "black" :foreground "red" :strike-through t)))))
-;;;      ;; recommended keybinds for the tmp buffer.  Both Vanilla and Evil.
+;;;      ;; recommended key binds for the tmp buffer.  Both Vanilla and Evil.
 ;;;      (define-key mor-tmp-buffer-mode-map (kbd "C-c b") #'mor-copy-back)
 ;;;      (define-key mor-tmp-buffer-mode-map (kbd "C-c c") #'mor-close-tmp-buffer)))
 
@@ -134,15 +134,15 @@ When using `mor-readonly-for-extra-protection-p'"
 (declare-function mor--mode-on-region 'mode-on-region)
 
 ;; TODO: Fix bug where tmp buffer won't die if the orig buffer is killed first.
-;;       Problaby need some guards when attemping to dispose markers in the
+;;       Probably need some guards when attempting to dispose markers in the
 ;;       no-longer-existing orig buff.
 ;; TODO: Make an option to attempt to preserve the original indent when copying
 ;;       text back to the original buffer. This could make option
-;;       `mor-format-automatically-p' more useful becuase when it forces
+;;       `mor-format-automatically-p' more useful because when it forces
 ;;       text to the left edge in tmp, it won't destroy the indent in the orig
 ;;       buffer.
 ;; TODO: Support selection of rectangular regions. Useful for selecting text
-;;       in a comment. So you could exlude the comment markers that would mess
+;;       in a comment. So you could exclude the comment markers that would mess
 ;;       up the dedicated mode buffer.
 ;; TODO: Incorporate code from org-mode. Locks highlighted region from edits.
 ;;       Look into how it copies text back/forth between buffers.
@@ -261,12 +261,12 @@ END2 = range 2 end."
         (between? start2 end2 end1))))
 
 (defun mor--set-region (state start end orig-buff tmp-buff)
-  "Make region writeable or readonly based on STATE.
+  "Make region writable or readonly based on STATE.
 If STATE=readonly make region readonly.
-If STATE=writeable make region writeable.
+If STATE=writable make region writable.
 START of region.
 END of region.
-ORIG-BUFF is the original buffer to make writeable or readonly.
+ORIG-BUFF is the original buffer to make writable or readonly.
 TMP-BUFF is associated with any overlays created so the overlays can be deleted
 when TMP-BUFF is deleted."
   (with-current-buffer orig-buff
@@ -284,7 +284,7 @@ when TMP-BUFF is deleted."
               (mor--add-overlay-readonly orig-buff tmp-buff start end)
               ;; (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
               (add-text-properties start-adj end '(read-only t)))
-          ;; else make writeable
+          ;; else make writable
           (let ((inhibit-read-only t)) ;; Do i need this?
             (remove-text-properties start-adj end '(read-only t))
             ;; (remove-overlays start end)
@@ -305,7 +305,7 @@ Region is between START and END inclusive."
   (mor--mode-on-region start
                        end
                        (if mor-mode-fn
-                           ;; use dynamcally bound value if available.
+                           ;; use dynamically bound value if available.
                            mor-mode-fn
                          ;; otherwise user chooses the mode
                          (intern (completing-read
@@ -352,7 +352,7 @@ MODE-FN the function to turn on the desired mode."
           (when (mor--overlap-p start end
                                 (marker-position mor--start)
                                 (marker-position mor--end))
-            ;; return early. Overlaps an exisiting mor region.
+            ;; return early. Overlaps an existing mor region.
             (message "Overlap with another mor region detected. Abort!")
             (cl-return-from mor--mode-on-region)))))
 
@@ -365,7 +365,7 @@ MODE-FN the function to turn on the desired mode."
           (tmp-buff (get-buffer-create (mor--gen-buffer-name))))
 
 
-      (kill-ring-save start end) ;; copy higlighted text
+      (kill-ring-save start end) ;; copy highlighted text
 
 
       (when mor-readonly-for-extra-protection-p
@@ -391,9 +391,9 @@ MODE-FN the function to turn on the desired mode."
               mor--start (set-marker (make-marker) start orig-buff)
               mor--end (set-marker (make-marker) end orig-buff)))
 
-      (mor-tmp-buffer-mode) ; for keybinds.
+      (mor-tmp-buffer-mode) ; for key binds.
 
-      ;; show a header with useful keybind info. Like `org-src-mode' does.
+      ;; show a header with useful key bind info. Like `org-src-mode' does.
       (set (make-local-variable 'header-line-format)
            (substitute-command-keys
             "[Copy back]: \\[mor-copy-back]  [Abort]: \\[mor-close-tmp-buffer]"))
@@ -413,7 +413,7 @@ Overwrites the original text."
     (message "You must be in a mor-tmp buffer for this to work."))
    ;; guard 2. ensure orig-buff is not in read-only mode
    ((with-current-buffer mor--orig-buffer buffer-read-only)
-    (message "Orignal buffer is read-only. Cannot copy back."))
+    (message "Original buffer is read-only. Cannot copy back."))
    ;; else. Guards passed
    (t
     ;; Cache tmp buffer local values. They will be invisible once we switch
@@ -437,10 +437,10 @@ Overwrites the original text."
       ;; paste new text
       (yank)
 
-      ;; kill the tmp buffer becuase mulitple attempts to copy back text
+      ;; kill the tmp buffer because multiple attempts to copy back text
       ;; will be wrong due to the now invalid start/end location. Will need
       ;; to use a better way to track start/end before we can allow the
-      ;; tmp buffer to live longer for mulitple copies.
+      ;; tmp buffer to live longer for multiple copies.
       (quit-window t (get-buffer-window tmp-buff))))))
 
 (defun mor-close-tmp-buffer ()
@@ -469,7 +469,7 @@ M for marker."
         (with-current-buffer mor--orig-buffer
           ;; GUARD: if the whole buffer was readonly don't bother toggling.
           (unless buffer-read-only
-            (mor--set-region 'writeable start end orig-buff tmp-buff))))))
+            (mor--set-region 'writable start end orig-buff tmp-buff))))))
 
   ;; clear markers
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
