@@ -53,6 +53,7 @@
 ;;; (eval-after-load 'mode-on-region
 ;;;   '(progn
 ;;;      (setq mor-format-automatically-p nil)
+;;;      (setq mor-fix-whitespace-p nil)
 ;;;      (setq mor-readonly-for-extra-protection-p t)
 ;;;      (custom-set-faces
 ;;;       `(mor-readonly-face
@@ -65,6 +66,7 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'rx)
+(require 'whitespace)
 
 (defconst mor--minimal-emacs "24.1"
   "Minimum Emacs version needed to run mode-on-region.
@@ -104,6 +106,11 @@ accidentally calling a function not relevant outside of a tmp buffer."
 
 (defcustom mor-format-automatically-p nil
   "When t automatically format the copied text via `indent-region'."
+  :type 'boolean
+  :group 'mode-on-region)
+
+(defcustom mor-fix-whitespace-p nil
+  "When t automatically fix whitepsace via `whitespace-cleanup'."
   :type 'boolean
   :group 'mode-on-region)
 
@@ -399,7 +406,10 @@ MODE-FN the function to turn on the desired mode."
             "[Copy back]: \\[mor-copy-back]  [Abort]: \\[mor-close-tmp-buffer]"))
 
       (when mor-format-automatically-p
-        (indent-region (point-min) (point-max))))))
+        (indent-region (point-min) (point-max)))
+
+      (when mor-fix-whitespace-p
+        (whitespace-cleanup)))))
 
 (defun mor-copy-back ()
   "Copy the tmp buffer text back the original buffer.
