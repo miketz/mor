@@ -160,8 +160,6 @@ When using `mor-readonly-for-extra-protection-p'"
 (declare-function mor-get-tmp-buffers 'mode-on-region)
 (declare-function mor--gen-buffer-name 'mode-on-region)
 (declare-function mor--mode-on-region 'mode-on-region)
-;; declare `buffer-modified-p' to force dynamic binding instead of lexical.
-(defvar buffer-modified-p)
 
 ;; TODO: Fix bug where tmp buffer won't die if the orig buffer is killed first.
 ;;       Probably need some guards when attempting to dispose markers in the
@@ -179,8 +177,6 @@ When using `mor-readonly-for-extra-protection-p'"
 ;;       See function `org-edit-special'
 ;; DONE: Optionally create a tmp file on disk. Useful for features that
 ;;       require a file on disk (some linters, etc).
-;; TODO: avoid save prompt when deleting modified tmp buffers with a file.
-;;       setting `buffer-modified-p' to nil doesn't seem to have an effect.
 
 ;; Local to the tmp-buff
 (defvar-local mor--orig-buffer nil
@@ -488,15 +484,15 @@ Overwrites the original text."
       ;; to use a better way to track start/end before we can allow the
       ;; tmp buffer to live longer for multiple copies.
       (with-current-buffer tmp-buff
-        (let ((buffer-modified-p nil)) ; avoid save prompt for tmp buffers with tmp files.
-          (quit-window t (get-buffer-window tmp-buff))))))))
+        (set-buffer-modified-p nil) ; avoid save prompt for tmp buffers with tmp files.
+        (quit-window t (get-buffer-window tmp-buff)))))))
 
 (defun mor-close-tmp-buffer ()
   "Kill the tmp buffer and clean up the window if applicable.
 Call this if you don't want to copy the text back to the original buffer."
   (interactive)
-  (let ((buffer-modified-p nil)) ; avoid save prompt for tmp buffers with tmp files.
-    (quit-window t)))
+  (set-buffer-modified-p nil) ; avoid save prompt for tmp buffers with tmp files.
+  (quit-window t))
 
 
 (defun mor--marker-active-p (m)
