@@ -160,6 +160,8 @@ When using `mor-readonly-for-extra-protection-p'"
 (declare-function mor-get-tmp-buffers 'mode-on-region)
 (declare-function mor--gen-buffer-name 'mode-on-region)
 (declare-function mor--mode-on-region 'mode-on-region)
+;; declare `buffer-modified-p' to force dynamic binding instead of lexical.
+(defvar buffer-modified-p)
 
 ;; TODO: Fix bug where tmp buffer won't die if the orig buffer is killed first.
 ;;       Probably need some guards when attempting to dispose markers in the
