@@ -235,18 +235,29 @@ END of overlay region."
           (push b lst)))
       lst))
 
- ;; `seq' is a sequential counter used to generate unique names for tmp
- ;; buffers. Make it private by let-binding it and accessing it with lexical
- ;; scope.
- (let ((seq 0))
-   (defun mor--gen-buffer-name ()
-     "Generate a unique buffer name."
-     (prog1
-         (concat mor--prefix
-                 (buffer-name (current-buffer))
-                 "-"
-                 (int-to-string seq))
-       (cl-incf seq)))))
+  ;; `seq' is a sequential counter used to generate unique names for tmp
+  ;; buffers. Make it private by let-binding it and accessing it with lexical
+  ;; scope.
+  (let ((seq 0))
+    (defun mor--gen-buffer-name ()
+      "Generate a unique buffer name."
+      (prog1
+          (concat mor--prefix
+                  (buffer-name (current-buffer))
+                  "-"
+                  (int-to-string seq))
+        (cl-incf seq))))
+
+  (let ((seq 0))
+    (defun mor--gen-file-name ()
+      "Generate a unique name for a file.
+Initially the buffer name was re-used as the file name.
+However buffers may have illegal characters that break filenames (especially
+on MS-Windows). So for now just make the name from an arbitrary sequence,
+not even tied to the buffer name sequence."
+      (prog1
+          (concat mor--prefix "-" (int-to-string seq))
+        (cl-incf seq)))))
 
 (defun mor-kill-tmp-buffers ()
   "Delete the junk tmp buffers."
@@ -435,11 +446,13 @@ MODE-FN the function to turn on the desired mode."
       (when (and mor-allow-tmp-files-p
                  (memq major-mode mor-modes-to-create-tmp-files))
         ;; create folder for tmp files.
-        (unless (file-exists-p mor-tmp-folder)
+        (when (and (not (null mor-tmp-folder))
+                   (not (file-exists-p mor-tmp-folder)))
           (make-directory mor-tmp-folder))
         ;; create tmp file.
-        (let ((file (concat mor-tmp-folder (buffer-name))))
-          (when (file-exists-p file)
+        (let ((file (concat mor-tmp-folder (mor--gen-file-name))))
+          (when (and (not (null file))
+                     (file-exists-p file))
             (delete-file file))
           (write-file file))))))
 
@@ -527,8 +540,9 @@ Deletes a temporary file created for the tmp buffer."
 
   ;; delete tmp buffer. No config var guards because they may have been
   ;; toggled off during the tmp file's lifetime.
-  (let ((tmp-file (concat mor-tmp-folder (buffer-name))))
-    (when (file-exists-p tmp-file)
+  (let ((tmp-file (buffer-file-name)))
+    (when (and (not (null tmp-file))
+               (file-exists-p tmp-file))
       (delete-file tmp-file))))
 
 
