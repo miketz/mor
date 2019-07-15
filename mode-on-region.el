@@ -127,6 +127,20 @@ being accidentally overwritten."
   :type 'boolean
   :group 'mode-on-region)
 
+(defcustom mor-tmp-folder "~/mor-temp-files/"
+  "Folder to store temporary files.")
+
+(defcustom mor-modes-to-create-tmp-files '()
+  "A list of modes for which a tmp files will be created for the tmp buffer.
+If you don't know the symbol name of a mode, inspect the bufffer local
+variable `major-mode' while in a buffer having thate major mode active.")
+
+(defcustom mor-allow-tmp-files-p nil
+  "When t create a file in folder `mor-tmp-folder' for the tmp buffer when
+editing in a mode in `mor-modes-to-create-tmp-files'.
+Basically this variable exists so you don't need to wipe out the list
+of modes to turn off the temp file creation.")
+
 (defface mor-readonly-face
   '((t (:inherit region)))
   "Face for the selected region.
@@ -154,8 +168,10 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; TODO: Incorporate code from org-mode. Locks highlighted region from edits.
 ;;       Look into how it copies text back/forth between buffers.
 ;;       See function `org-edit-special'
-;; TODO: Optionally create a tmp file on disk. Useful for features that
+;; DONE: Optionally create a tmp file on disk. Useful for features that
 ;;       require a file on disk (some linters, etc).
+;; TODO: avoid save prompt when deleting modified tmp buffers with a file.
+;;       setting `buffer-modified-p' to nil doesn't seem to have an effect.
 
 ;; Local to the tmp-buff
 (defvar-local mor--orig-buffer nil
@@ -409,7 +425,18 @@ MODE-FN the function to turn on the desired mode."
         (indent-region (point-min) (point-max)))
 
       (when mor-fix-whitespace-p
-        (whitespace-cleanup)))))
+        (whitespace-cleanup))
+
+      (when (and mor-allow-tmp-files-p
+                 (memq major-mode mor-modes-to-create-tmp-files))
+        ;; create folder for tmp files.
+        (unless (file-exists-p mor-tmp-folder)
+          (make-directory mor-tmp-folder))
+        ;; create tmp file.
+        (let ((file (concat mor-tmp-folder (buffer-name))))
+          (when (file-exists-p file)
+            (delete-file file))
+          (write-file file))))))
 
 (defun mor-copy-back ()
   "Copy the tmp buffer text back the original buffer.
@@ -433,7 +460,7 @@ Overwrites the original text."
            (rng (- (marker-position mor--end)
                    start)))
 
-      (mor--unlock-orig-buffer)
+      (mor--clean-up)
 
       ;; copy tmp buffer text.
       (kill-ring-save (point-min) (point-max))
@@ -451,13 +478,16 @@ Overwrites the original text."
       ;; will be wrong due to the now invalid start/end location. Will need
       ;; to use a better way to track start/end before we can allow the
       ;; tmp buffer to live longer for multiple copies.
-      (quit-window t (get-buffer-window tmp-buff))))))
+      (with-current-buffer tmp-buff
+        (let ((buffer-modified-p nil)) ; avoid save prompt for tmp buffers with tmp files.
+          (quit-window t (get-buffer-window tmp-buff))))))))
 
 (defun mor-close-tmp-buffer ()
   "Kill the tmp buffer and clean up the window if applicable.
 Call this if you don't want to copy the text back to the original buffer."
   (interactive)
-  (quit-window t))
+  (let ((buffer-modified-p nil)) ; avoid save prompt for tmp buffers with tmp files.
+    (quit-window t)))
 
 
 (defun mor--marker-active-p (m)
@@ -466,8 +496,11 @@ M for marker."
   (and (not (null m))
        (not (null (marker-position m)))))
 
-(defun mor--unlock-orig-buffer ()
-  "Unlock region in the original buffer."
+(defun mor--clean-up ()
+  "Perform cleanup when the tmp buffer is killed.
+Unlocks the region if the original buffer.
+Deletes a temporary file created for the tmp buffer."
+  ;; Unlock region in the original buffer.
   (when mor-readonly-for-extra-protection-p
     ;; guard against dupe call from hook
     (when (and (mor--marker-active-p mor--start)
@@ -485,14 +518,20 @@ M for marker."
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
     (set-marker mor--start nil))
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
-    (set-marker mor--end nil)))
+    (set-marker mor--end nil))
+
+  ;; delete tmp buffer. No config var guards because they may have been
+  ;; toggled off during the tmp file's lifetime.
+  (let ((tmp-file (concat mor-tmp-folder (buffer-name))))
+    (when (file-exists-p tmp-file)
+      (delete-file tmp-file))))
 
 
 ;; use a hook to unlock the orig buffer when the tmp buffer is killed
 (add-hook 'mor-tmp-buffer-mode-hook
           (lambda ()
             (add-hook 'kill-buffer-hook
-                      'mor--unlock-orig-buffer
+                      'mor--clean-up
                       nil
                       'make-it-local)))
 
