@@ -128,18 +128,25 @@ being accidentally overwritten."
   :group 'mode-on-region)
 
 (defcustom mor-tmp-folder "~/mor-temp-files/"
-  "Folder to store temporary files.")
+  "Folder to store temporary files."
+  :type 'directory
+  :group 'mode-on-region)
 
 (defcustom mor-modes-to-create-tmp-files '()
   "A list of modes for which a tmp files will be created for the tmp buffer.
 If you don't know the symbol name of a mode, inspect the bufffer local
-variable `major-mode' while in a buffer having thate major mode active.")
+variable `major-mode' while in a buffer having thate major mode active."
+  :type 'list
+  :group 'mode-on-region)
 
 (defcustom mor-allow-tmp-files-p nil
-  "When t create a file in folder `mor-tmp-folder' for the tmp buffer when
+  "When t allow tmp files to be created.
+Tmp files will be created in folder `mor-tmp-folder' for the tmp buffer when
 editing in a mode in `mor-modes-to-create-tmp-files'.
 Basically this variable exists so you don't need to wipe out the list
-of modes to turn off the temp file creation.")
+of modes to turn off the temp file creation."
+  :type 'boolean
+  :group 'mode-on-region)
 
 (defface mor-readonly-face
   '((t (:inherit region)))
