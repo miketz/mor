@@ -148,6 +148,12 @@ of modes to turn off the temp file creation."
   :type 'boolean
   :group 'mode-on-region)
 
+(defcustom mor-auto-delete-tmp-files-p t
+  "When t automatically delete tmp files.
+The deletion will occur when the associated tmp buffer is killed."
+  :type 'boolean
+  :group 'mode-on-region)
+
 (defface mor-readonly-face
   '((t (:inherit region)))
   "Face for the selected region.
@@ -539,12 +545,13 @@ Deletes a temporary file created for the tmp buffer."
   (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
     (set-marker mor--end nil))
 
-  ;; delete tmp buffer. No config var guards because they may have been
-  ;; toggled off during the tmp file's lifetime.
-  (let ((tmp-file (buffer-file-name)))
-    (when (and (not (null tmp-file))
-               (file-exists-p tmp-file))
-      (delete-file tmp-file))))
+  ;; delete tmp buffer. No guard on `mor-allow-tmp-files-p' because it may
+  ;; have been toggled off during the tmp file's lifetime.
+  (when mor-auto-delete-tmp-files-p
+    (let ((tmp-file (buffer-file-name)))
+      (when (and (not (null tmp-file))
+                 (file-exists-p tmp-file))
+        (delete-file tmp-file)))))
 
 
 ;; use a hook to unlock the orig buffer when the tmp buffer is killed
