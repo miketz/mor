@@ -565,29 +565,4 @@ Deletes a temporary file created for the tmp buffer."
 
 (provide 'mode-on-region)
 
-;;; Unit tests.
-(when nil ;; Do not execute.
-  ;; TODO: use ert. For now it's just a progn I manually eval.
-  (progn
-    (require 'mode-on-region)
-    ;; mor--overlap-p
-    (cl-assert (not (mor--overlap-p 1 10 15 20)))
-    (cl-assert (not (mor--overlap-p 2 10 -1 1)))
-    (cl-assert (mor--overlap-p 2 10 3 4))
-    (cl-assert (mor--overlap-p 2 10 3 40))
-    (cl-assert (mor--overlap-p 2 10 -3 5))
-    (cl-assert (mor--overlap-p 5 20    ; big region
-                               10 12)) ; little region completely inside big.
-    (cl-assert (mor--overlap-p 10 12  ; little region
-                               5 20)) ; big region completely covering little.
-    ;; regions touching, but not overlapping
-    (cl-assert (not (mor--overlap-p 1 2
-                                    3 4)))
-    (cl-assert (not (mor--overlap-p 3 4
-                                    1 2)))
-    ;; overlapping by 1
-    (cl-assert (mor--overlap-p 1 2
-                               2 3))
-    'pass))
-
 ;;; mode-on-region.el ends here
