@@ -8,6 +8,8 @@
 ;;; turns on the mode of your choice.
 ;;; `mor-prev-mode-on-region' does the same thing, but recalls the previously
 ;;; chosen mode.
+;;; `mor-curr-mode-on-region' does the same thing, but defaults to the mode of
+;;; the current buffer.
 ;;;
 ;;; Copy the text back with `mor-copy-back' or C-c b.
 ;;;                                            mnemonic: copy back
@@ -41,14 +43,17 @@
 ;;; (add-to-list 'load-path "/your/chosen/folder")
 ;;; (autoload #'mor-mode-on-region "mode-on-region" nil t)
 ;;; (autoload #'mor-prev-mode-on-region "mode-on-region" nil t)
+;;; (autoload #'mor-curr-mode-on-region "mode-on-region" nil t)
 ;;; ;; Recommended keybinds for vanilla Emacs.  Press "C-c m" with text highlighted.
 ;;; (global-set-key (kbd "C-c m") #'mor-mode-on-region)
 ;;; (global-set-key (kbd "C-c .") #'mor-prev-mode-on-region)
+;;; (global-set-key (kbd "C-c r") #'mor-curr-mode-on-region)
 ;;; ;; Recommended key binds for evil users.  Press "m" in visual mode.
 ;;; (eval-after-load 'evil
 ;;;   '(progn
 ;;;      (define-key evil-visual-state-map (kbd "m") #'mor-mode-on-region)
-;;;      (define-key evil-visual-state-map (kbd ".") #'mor-prev-mode-on-region)))
+;;;      (define-key evil-visual-state-map (kbd ".") #'mor-prev-mode-on-region)
+;;;      (define-key evil-visual-state-map (kbd "r") #'mor-curr-mode-on-region)))
 ;;; ;; Configure
 ;;; (eval-after-load 'mode-on-region
 ;;;   '(progn
@@ -359,6 +364,18 @@ Region is between START and END inclusive."
                                   (apropos-internal "-mode$"
                                                     #'commandp)
                                   nil t)))))
+
+;;;###autoload
+(defun mor-curr-mode-on-region (start end)
+  "Same as `mor-mode-on-region' but default to the mode of the current buffer.
+Region is between START and END inclusive."
+  (interactive "r")
+  (mor--mode-on-region start
+                       end
+                       ;; TODO: confirm the symbol stored in `major-mode' will
+                       ;; always be the name of the function to turn on the
+                       ;; major mode. By convention it seems to be.
+                       major-mode))
 
 ;; `mor--prev-mode-fn' is the the previous mode used. Make it private by
 ;; let-binding it and accessing it with lexical scope.
