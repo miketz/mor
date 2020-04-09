@@ -179,6 +179,8 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; TODO: Fix bug where tmp buffer won't die if the orig buffer is killed first.
 ;;       Probably need some guards when attempting to dispose markers in the
 ;;       no-longer-existing orig buff.
+;; TODO: fix bug where read-only properties are never removed if tmp buffer
+;;       mode is manually changed.
 ;; TODO: Make an option to attempt to preserve the original indent when copying
 ;;       text back to the original buffer. This could make option
 ;;       `mor-format-automatically-p' more useful because when it forces
