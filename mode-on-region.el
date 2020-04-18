@@ -135,6 +135,17 @@ being accidentally overwritten."
   :type 'boolean
   :group 'mode-on-region)
 
+(defcustom mor-default-to-emacs-lisp-mode-p nil
+  "When t default to emacs-lisp-mode when invoking `mor-prev-mode-on-region'.
+[keybind C-c .]
+Will only has an effect the very first time `mor-prev-mode-on-region' is
+called, and only if there was no previous mode yet.
+
+This is just to save me from typing out \"emacs-lisp-mode\" the first time
+I use mode-on-region."
+  :type 'boolean
+  :group 'mode-on-region)
+
 (defcustom mor-tmp-folder "~/mor-temp-files/"
   "Folder to store temporary files."
   :type 'directory
@@ -392,11 +403,13 @@ Region is between START and END inclusive."
 Previous mode is saved in variable `mor--prev-mode-fn'.
 Region is between START and END inclusive."
     (interactive "r")
-    (if (null mor--prev-mode-fn) ; guard against early usage.
+    (if (and (null mor--prev-mode-fn) ; guard against early usage.
+             (not mor-default-to-emacs-lisp-mode-p))
         (message "No previously used mode found.")
       (mor--mode-on-region start
                            end
-                           mor--prev-mode-fn)))
+                           (or mor--prev-mode-fn
+                               #'emacs-lisp-mode))))
 
   ;; Using `cl-defun' for the `cl-return-from' feature. An early return feels
   ;; better than nesting code in a conditional statement.
