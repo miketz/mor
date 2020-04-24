@@ -468,10 +468,19 @@ MODE-FN the function to turn on the desired mode."
 
     (mor-tmp-buffer-mode) ; for key binds.
 
-    ;; show a header with useful key bind info. Like `org-src-mode' does.
+    ;; Show a header with useful key bind info. Like `org-src-mode' does.
+    ;; Also show info about the mode itself in the header.
     (set (make-local-variable 'header-line-format)
          (substitute-command-keys
-          "[Copy back]: \\[mor-copy-back]  [Abort]: \\[mor-close-tmp-buffer]"))
+          (format
+           "[Copy back]: \\[mor-copy-back]  [Abort]: \\[mor-close-tmp-buffer]           %s, %s"
+           ;; human friendly name of mode
+           (if (listp mode-name)
+               (car mode-name)
+             mode-name)
+           ;; name of mode-fn symbol itself. This is sometimes more descriptive
+           ;; than the "human friendly" mode-name.
+           (symbol-name mode-fn))))
 
     (when mor-format-automatically-p
       (indent-region (point-min) (point-max)))
