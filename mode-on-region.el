@@ -101,11 +101,11 @@ This version introduced lexical binding.")
   :group 'tools)
 
 (define-minor-mode mor-tmp-buffer-mode
-  "Minor mode to simulate buffer local keybinds in mor tmp buffers.
+  "Minor mode to simulate buffer local key binds in mor tmp buffers.
 Before this minor mode, tmp buffer funcs were bound globally and
 required guards to verify the user was inside a mor tmp buffer.
 NOTE: the guards still exist for needed protection.  The minor mode
-keybinds just help avoid keybind pollution, and reduce the risk of
+key binds just help avoid key bind pollution, and reduce the risk of
 accidentally calling a function not relevant outside of a tmp buffer."
   :lighter " mor-tmp"
   :keymap (let ((map (make-sparse-keymap)))
@@ -118,7 +118,7 @@ accidentally calling a function not relevant outside of a tmp buffer."
   :group 'mode-on-region)
 
 (defcustom mor-fix-whitespace-p nil
-  "When t automatically fix whitepsace via `whitespace-cleanup'."
+  "When t automatically fix whitespace via `whitespace-cleanup'."
   :type 'boolean
   :group 'mode-on-region)
 
@@ -140,7 +140,7 @@ being accidentally overwritten."
 This fn variable is used by `mor-prev-mode-on-region' to remember the previous
 mode used.
 Making the previous fn configurable allows you to have a default value for the
-previous mode. ie you don't have to type out \"emacs-lisp-mode\" the first
+previous mode.  IE you don't have to type out \"emacs-lisp-mode\" the first
 time to get a previous mode set."
   :type 'function
   :group 'mode-on-region)
@@ -152,8 +152,8 @@ time to get a previous mode set."
 
 (defcustom mor-modes-to-create-tmp-files '()
   "A list of modes for which a tmp files will be created for the tmp buffer.
-If you don't know the symbol name of a mode, inspect the bufffer local
-variable `major-mode' while in a buffer having thate major mode active."
+If you don't know the symbol name of a mode, inspect the buffer local
+variable `major-mode' while in a buffer having that major mode active."
   :type 'list
   :group 'mode-on-region)
 
@@ -206,7 +206,7 @@ When using `mor-readonly-for-extra-protection-p'"
 
 ;; Local to the tmp-buff
 (defvar-local mor--orig-buffer nil
-  "The original buffer you highted some text in.
+  "The original buffer you highlighted some text in.
 Used in tmp buffer to transfer the modified text back to the original buffer.")
 (defvar-local mor--start nil
   "Start of region. Implemented via a marker.
@@ -452,7 +452,7 @@ MODE-FN the function to turn on the desired mode."
 
     (funcall mor-switch-buff-fn tmp-buff)
     (yank)              ;; paste text
-    ;; ignore errors before turning on mode, otherwise mor keybinds won't be
+    ;; ignore errors before turning on mode, otherwise mor key binds won't be
     ;; set. Like "C-c c" to close.
     (with-demoted-errors "Error: %S"
       (funcall mode-fn)) ;; turn on the dedicated mode.
