@@ -2,6 +2,10 @@
 
 ;;; License: GPL version 3
 
+;;; Keywords: convenience
+;;; Package-Requires: ((emacs "24.1"))
+;;; Version: 0.1.0
+;;; URL: https://github.com/miketz/mor
 
 ;;; Commentary:
 ;;; `mor-mode-on-region' copies a highlighted region to a tmp buffer and
