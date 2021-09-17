@@ -309,11 +309,9 @@ END of overlay region."
 (let ((mor--prefix "mor-tmp-"))
   (defun mor-get-tmp-buffers ()
     "Return a list of the mor tmp buffers."
-    (let ((lst '()))
-      (dolist (b (buffer-list))
-        (when (mor--starts-with-p (buffer-name b) mor--prefix)
-          (push b lst)))
-      lst))
+    (cl-loop for b in (mapcar #'mor-sel-buffer-tmp mor-sel-list)
+           when (buffer-live-p b) ;;TODO: remove old sel from global list.
+           collect b))
 
   ;; `seq' is a sequential counter used to generate unique names for tmp
   ;; buffers. Make it private by let-binding it and accessing it with lexical
