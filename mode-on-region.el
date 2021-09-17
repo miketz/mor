@@ -77,6 +77,7 @@
 
 ;;; Code:
 (require 'cl-lib)
+(provide 'cl-macs) ;; for cl-defstruct
 (require 'rx)
 (require 'whitespace)
 
@@ -207,6 +208,29 @@ When using `mor-readonly-for-extra-protection-p'"
 ;;       See function `org-edit-special'
 ;; DONE: Optionally create a tmp file on disk. Useful for features that
 ;;       require a file on disk (some linters, etc).
+
+
+;; NOTE: moving away from buffer-local variables as they get wiped out when
+;; the major mode changes. Opens up many holes where read-only sections and
+;; overlays are left orphaned and not cleaned up. (MAJOR BUG!!!)
+;; Replacing buffer local vars with a list of global structures.
+(cl-defstruct (mor-selection (:constructor mor-selection-create)
+                             (:copier nil))
+  "Structure to group all relevant info for a selected region.
+The markers. The readonly section. References to the relevant buffers. And
+anything else."
+  (buffer-orig)
+  (buffer-tmp)
+  ;; markers, overlay exist in buffer-orig
+  (marker-start)
+  (marker-end)
+  (overlay)
+  ;; `mor-readonly-for-extra-protection-p' has this globally for all regions
+  ;; but store here anyway to support future mixing.
+  (readonlyp))
+
+(defvar mor-selection-list '()
+  "A global list of all selections.  For all buffers.")
 
 ;; Local to the tmp-buff
 (defvar-local mor--orig-buffer nil
