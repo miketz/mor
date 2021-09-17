@@ -306,8 +306,8 @@ END of overlay region."
 
 
 (defun mor-get-tmp-buffers ()
-    "Return a list of the mor tmp buffers."
-    (cl-loop for b in (mapcar #'mor-sel-buffer-tmp mor-sel-list)
+  "Return a list of the mor tmp buffers."
+  (cl-loop for b in (mapcar #'mor-sel-buffer-tmp mor-sel-list)
            when (buffer-live-p b) ;;TODO: remove old sel from global list.
            collect b))
 
