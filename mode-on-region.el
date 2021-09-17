@@ -305,7 +305,7 @@ END of overlay region."
       (setq mor--overlays (remove entry mor--overlays)))))
 
 
-(defun mor-get-tmp-buffers ()
+(defun mor-get-tmp-buffers () ;;###ported
   "Return a list of the mor tmp buffers."
   (cl-loop for b in (mapcar #'mor-sel-buffer-tmp mor-sel-list)
            when (buffer-live-p b) ;;TODO: remove old sel from global list.
@@ -318,7 +318,7 @@ END of overlay region."
   ;; buffers. Make it private by let-binding it and accessing it with lexical
   ;; scope.
   (let ((seq 0))
-    (defun mor--gen-buffer-name ()
+    (defun mor--gen-buffer-name () ;;###ported
       "Generate a unique buffer name."
       (prog1
           (concat mor--prefix
@@ -330,7 +330,7 @@ END of overlay region."
         (cl-incf seq))))
 
   (let ((seq 0))
-    (defun mor--gen-file-name ()
+    (defun mor--gen-file-name () ;;###ported
       "Generate a unique name for a file.
 Initially the buffer name was re-used as the file name.
 However buffers may have illegal characters that break filenames (especially
