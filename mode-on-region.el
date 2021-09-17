@@ -215,7 +215,7 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; overlays are left orphaned and not cleaned up. (MAJOR BUG!!!)
 ;; Replacing buffer local vars with a list of global structures.
 (cl-defstruct (mor-sel (:constructor mor-sel-create)
-                             (:copier nil))
+                       (:copier nil))
   "Structure to group all relevant info for a selected region.
 The markers. The readonly section. References to the relevant buffers. And
 anything else."
