@@ -476,10 +476,16 @@ MODE-FN the function to turn on the desired mode."
   ;; remember the mode for `mor-prev-mode-on-region'
   (setq mor-prev-mode-fn mode-fn)
 
-  ;; save buffer and region coordinates to copy the text back in later.
-  (let ((orig-buff (current-buffer))
-        (tmp-buff (get-buffer-create (mor--gen-buffer-name))))
 
+  (let ((sel (mor-selection-create
+              :buffer-orig (current-buffer)
+              :buffer-tmp (get-buffer-create (mor--gen-buffer-name))
+              ;; track start/end with markers. Markers will automatically "move"
+              ;; as the text around them is changed.
+              :marker-start (set-marker (make-marker) start (current-buffer))
+              :marker-end (set-marker (make-marker) end (current-buffer)))))
+
+    (push sel mor-selection-list) ;; add to global list
 
     (kill-ring-save start end) ;; copy highlighted text
 
@@ -488,24 +494,19 @@ MODE-FN the function to turn on the desired mode."
       ;; GUARD: can't make it readonly if the buffer is already readonly.
       (unless buffer-read-only
         ;; lock down region in `orig-buff' until `tmp-buff' is killed
-        (mor--set-region 'readonly start end orig-buff tmp-buff)))
+        ;; TODO: look into using markers for start/end of read only region
+        (mor--set-region 'readonly start end
+                         (mor-selection-buffer-orig sel)
+                         (mor-selection-buffer-tmp sel))))
 
     (deactivate-mark)
 
-    (funcall mor-switch-buff-fn tmp-buff)
+    (funcall mor-switch-buff-fn (mor-selection-buffer-tmp sel))
     (yank)              ;; paste text
     ;; ignore errors before turning on mode, otherwise mor key binds won't be
     ;; set. Like "C-c c" to close.
     (with-demoted-errors "Error: %S"
       (funcall mode-fn)) ;; turn on the dedicated mode.
-    (with-current-buffer tmp-buff
-      ;; NOTE: these buffer-local vars must be set AFTER `mode-fn' is
-      ;; called. Because major modes wipe buffer local vars.
-      (setq mor--orig-buffer orig-buff
-            ;; track start/end with markers. Markers will automatically "move"
-            ;; as the text around them is changed.
-            mor--start (set-marker (make-marker) start orig-buff)
-            mor--end (set-marker (make-marker) end orig-buff)))
 
     (mor-tmp-buffer-mode) ; for key binds.
 
