@@ -324,7 +324,9 @@ END of overlay region."
           (concat mor--prefix
                   (buffer-name (current-buffer))
                   "-"
-                  (int-to-string seq))
+                  (int-to-string seq)
+                  "-"
+                  (md5 (int-to-string (random))))
         (cl-incf seq))))
 
   (let ((seq 0))
@@ -335,7 +337,10 @@ However buffers may have illegal characters that break filenames (especially
 on MS-Windows). So for now just make the name from an arbitrary sequence,
 not even tied to the buffer name sequence."
       (prog1
-          (concat mor--prefix "-" (int-to-string seq))
+          (concat mor--prefix
+                  (int-to-string seq)
+                  "-"
+                  (md5 (int-to-string (random))))
         (cl-incf seq)))))
 
 (defun mor-kill-tmp-buffers ()
