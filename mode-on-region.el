@@ -440,23 +440,21 @@ Region is between START and END.
 MODE-FN the function to turn on the desired mode."
 
   ;; GUARD: Don't allow the new region to overlap another mor region.
-  (let ((orig-buff (current-buffer)))
-    ;; only loop over tmp buffers belonging to the current orig-buff
-    (dolist (b (cl-remove-if-not (lambda (buff)
-                                   (eq orig-buff
-                                       (with-current-buffer buff
-                                         mor--orig-buffer)))
-                                 (mor-get-tmp-buffers)))
-      (with-current-buffer b
-        ;; TODO: fix off-by-1 issue where it wrongly detects overlap immediately
-        ;; after an existing region. But detects wrongly on the side of safety
-        ;; (overlap is prevented) so no rush to fix.
-        (when (mor--overlap-p start end
-                              (marker-position mor--start)
-                              (marker-position mor--end))
-          ;; return early. Overlaps an existing mor region.
-          (message "Overlap with another mor region detected. Abort!")
-          (cl-return-from mor--mode-on-region)))))
+  (let* ((orig-buff (current-buffer))
+         (orig-buff-selections (cl-remove-if-not (lambda (buff)
+                                                   (eq orig-buff
+                                                       (mor-selection-buffer-orig buff)))
+                                                 mor-selection-list)))
+    (dolist (sel orig-buff-selections)
+      ;; TODO: fix off-by-1 issue where it wrongly detects overlap immediately
+      ;; after an existing region. But detects wrongly on the side of safety
+      ;; (overlap is prevented) so no rush to fix.
+      (when (mor--overlap-p start end
+                            (marker-position (mor-selection-marker-start sel))
+                            (marker-position (mor-selection-marker-end sel)))
+        ;; return early. Overlaps an existing mor region.
+        (message "Overlap with another mor region detected. Abort!")
+        (cl-return-from mor--mode-on-region))))
 
 
   ;; remember the mode for `mor-prev-mode-on-region'
