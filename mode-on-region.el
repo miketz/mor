@@ -239,11 +239,11 @@ Using the cl-defstruct acessor BUFF-ACCESS-FN."
 
 (defun mor-get-selections-for-buffer-orig (orig-buff)
   "Return a list of selections for the original buffer ORIG-BUFF."
-  (mor-get-selections-for-buffer #'mor-selection-buffer-orig))
+  (mor-get-selections-for-buffer orig-buff #'mor-selection-buffer-orig))
 
 (defun mor-get-selections-for-buffer-tmp (tmp-buff)
   "Return a list of selections for the tmp buffer TMP-BUFF."
-  (mor-get-selections-for-buffer #'mor-selection-buffer-tmp))
+  (mor-get-selections-for-buffer tmp-buff #'mor-selection-buffer-tmp))
 
 
 
@@ -372,19 +372,20 @@ END2 = range 2 end."
         (between? start2 end2 start1)
         (between? start2 end2 end1))))
 
-(defun mor--set-region (state start end orig-buff tmp-buff)
+(defun mor--set-region (state sel)
   "Make region writable or readonly based on STATE.
 If STATE=readonly make region readonly.
 If STATE=writable make region writable.
-START of region.
-END of region.
-ORIG-BUFF is the original buffer to make writable or readonly.
-TMP-BUFF is associated with any overlays created so the overlays can be deleted
-when TMP-BUFF is deleted."
+SEL is the selected region object."
   (with-current-buffer orig-buff
     ;; based on phils function:
     ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
-    (let ((modified (buffer-modified-p))
+    (let ((start (marker-position (mor-selection-marker-start sel)))
+          (end (marker-position (mor-selection-marker-end sel)))
+          (orig-buff (mor-selection-buffer-orig sel))
+          (tmp-buff (mor-selection-buffer-tmp sel))
+
+          (modified (buffer-modified-p))
           ;; TODO: fully handle case when region starts at first pos in buffer.
           (start-adj (if (> start 1) (1- start) start)))
       ;; shadow `buffer-undo-list' with dynamic binding. We don't want the
@@ -393,7 +394,9 @@ when TMP-BUFF is deleted."
       (let ((buffer-undo-list))
         (if (eq state 'readonly)
             (progn
-              (mor--add-overlay-readonly orig-buff tmp-buff start end)
+              ;; create overlay and save back to the struct
+              (setf (mor-selection-overlay sel)
+                    (mor--add-overlay-readonly orig-buff tmp-buff start end))
               ;; (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
               (add-text-properties start-adj end '(read-only t)))
           ;; else make writable
@@ -483,7 +486,9 @@ MODE-FN the function to turn on the desired mode."
               ;; track start/end with markers. Markers will automatically "move"
               ;; as the text around them is changed.
               :marker-start (set-marker (make-marker) start (current-buffer))
-              :marker-end (set-marker (make-marker) end (current-buffer)))))
+              :marker-end (set-marker (make-marker) end (current-buffer))
+              :overlay nil ;; will set a bit later
+              :readonlyp mor-readonly-for-extra-protection-p)))
 
     (push sel mor-selection-list) ;; add to global list
 
@@ -495,9 +500,7 @@ MODE-FN the function to turn on the desired mode."
       (unless buffer-read-only
         ;; lock down region in `orig-buff' until `tmp-buff' is killed
         ;; TODO: look into using markers for start/end of read only region
-        (mor--set-region 'readonly start end
-                         (mor-selection-buffer-orig sel)
-                         (mor-selection-buffer-tmp sel))))
+        (mor--set-region 'readonly sel)))
 
     (deactivate-mark)
 
