@@ -226,7 +226,8 @@ anything else."
   (marker-end)
   (overlay)
   ;; `mor-readonly-for-extra-protection-p' has this globally for all regions
-  ;; but store here anyway to support future mixing.
+  ;; but store here anyway to support future mixing. And in case anyone changes
+  ;; the global after selection creation.
   (readonlyp))
 
 (defvar mor-sel-list '()
