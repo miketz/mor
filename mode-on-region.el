@@ -214,7 +214,7 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; the major mode changes. Opens up many holes where read-only sections and
 ;; overlays are left orphaned and not cleaned up. (MAJOR BUG!!!)
 ;; Replacing buffer local vars with a list of global structures.
-(cl-defstruct (mor-selection (:constructor mor-selection-create)
+(cl-defstruct (mor-sel (:constructor mor-sel-create)
                              (:copier nil))
   "Structure to group all relevant info for a selected region.
 The markers. The readonly section. References to the relevant buffers. And
@@ -229,27 +229,28 @@ anything else."
   ;; but store here anyway to support future mixing.
   (readonlyp))
 
+(defvar mor-sel-list '()
+  "A global list of all selections.  For all buffers.")
+
 (defun mor-get-selections-for-buffer (buff buff-access-fn)
   "Return a list of selections for the tmp buffer TMP-BUFF.
 Using the cl-defstruct acessor BUFF-ACCESS-FN."
   (cl-remove-if-not (lambda (sel)
                       (eq buff
                           (funcall buff-access-fn sel)))
-                    mor-selection-list))
+                    mor-sel-list))
 
 (defun mor-get-selections-for-buffer-orig (orig-buff)
   "Return a list of selections for the original buffer ORIG-BUFF."
-  (mor-get-selections-for-buffer orig-buff #'mor-selection-buffer-orig))
+  (mor-get-selections-for-buffer orig-buff #'mor-sel-buffer-orig))
 
 (defun mor-get-selections-for-buffer-tmp (tmp-buff)
   "Return a list of selections for the tmp buffer TMP-BUFF."
-  (mor-get-selections-for-buffer tmp-buff #'mor-selection-buffer-tmp))
+  (mor-get-selections-for-buffer tmp-buff #'mor-sel-buffer-tmp))
 
 
 
 
-(defvar mor-selection-list '()
-  "A global list of all selections.  For all buffers.")
 
 ;; Local to the tmp-buff
 (defvar-local mor--orig-buffer nil
@@ -377,34 +378,33 @@ END2 = range 2 end."
 If STATE=readonly make region readonly.
 If STATE=writable make region writable.
 SEL is the selected region object."
-  (with-current-buffer orig-buff
-    ;; based on phils function:
-    ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
-    (let ((start (marker-position (mor-selection-marker-start sel)))
-          (end (marker-position (mor-selection-marker-end sel)))
-          (orig-buff (mor-selection-buffer-orig sel))
-          (tmp-buff (mor-selection-buffer-tmp sel))
-
-          (modified (buffer-modified-p))
-          ;; TODO: fully handle case when region starts at first pos in buffer.
-          (start-adj (if (> start 1) (1- start) start)))
-      ;; shadow `buffer-undo-list' with dynamic binding. We don't want the
-      ;; read-only text property to be recorded in undo. Otherwise the user
-      ;; may freeze a section of their buffer after an undo!!!!
-      (let ((buffer-undo-list))
-        (if (eq state 'readonly)
-            (progn
-              ;; create overlay and save back to the struct
-              (setf (mor-selection-overlay sel)
-                    (mor--add-overlay-readonly orig-buff tmp-buff start end))
-              ;; (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
-              (add-text-properties start-adj end '(read-only t)))
-          ;; else make writable
-          (let ((inhibit-read-only t)) ;; Do i need this?
-            (remove-text-properties start-adj end '(read-only t))
-            ;; (remove-overlays start end)
-            (mor--delete-overlay-readonly orig-buff tmp-buff))))
-      (set-buffer-modified-p modified))))
+  (let ((start (marker-position (mor-sel-marker-start sel)))
+        (end (marker-position (mor-sel-marker-end sel)))
+        (orig-buff (mor-sel-buffer-orig sel))
+        (tmp-buff (mor-sel-buffer-tmp sel)))
+    (with-current-buffer orig-buff
+      ;; based on phils function:
+      ;; http://stackoverflow.com/questions/20023363/emacs-remove-region-read-only
+      (let ((modified (buffer-modified-p))
+            ;; TODO: fully handle case when region starts at first pos in buffer.
+            (start-adj (if (> start 1) (1- start) start)))
+        ;; shadow `buffer-undo-list' with dynamic binding. We don't want the
+        ;; read-only text property to be recorded in undo. Otherwise the user
+        ;; may freeze a section of their buffer after an undo!!!!
+        (let ((buffer-undo-list))
+          (if (eq state 'readonly)
+              (progn
+                ;; create overlay and save back to the struct
+                (setf (mor-sel-overlay sel)
+                      (mor--add-overlay-readonly orig-buff tmp-buff start end))
+                ;; (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
+                (add-text-properties start-adj end '(read-only t)))
+            ;; else make writable
+            (let ((inhibit-read-only t)) ;; Do i need this?
+              (remove-text-properties start-adj end '(read-only t))
+              ;; (remove-overlays start end)
+              (mor--delete-overlay-readonly orig-buff tmp-buff))))
+        (set-buffer-modified-p modified)))))
 
 (defvar mor-mode-fn nil
   "Making mode-fn a dynamic variable.
@@ -469,8 +469,8 @@ MODE-FN the function to turn on the desired mode."
       ;; after an existing region. But detects wrongly on the side of safety
       ;; (overlap is prevented) so no rush to fix.
       (when (mor--overlap-p start end
-                            (marker-position (mor-selection-marker-start sel))
-                            (marker-position (mor-selection-marker-end sel)))
+                            (marker-position (mor-sel-marker-start sel))
+                            (marker-position (mor-sel-marker-end sel)))
         ;; return early. Overlaps an existing mor region.
         (message "Overlap with another mor region detected. Abort!")
         (cl-return-from mor--mode-on-region))))
@@ -480,7 +480,7 @@ MODE-FN the function to turn on the desired mode."
   (setq mor-prev-mode-fn mode-fn)
 
 
-  (let ((sel (mor-selection-create
+  (let ((sel (mor-sel-create
               :buffer-orig (current-buffer)
               :buffer-tmp (get-buffer-create (mor--gen-buffer-name))
               ;; track start/end with markers. Markers will automatically "move"
@@ -490,7 +490,7 @@ MODE-FN the function to turn on the desired mode."
               :overlay nil ;; will set a bit later
               :readonlyp mor-readonly-for-extra-protection-p)))
 
-    (push sel mor-selection-list) ;; add to global list
+    (push sel mor-sel-list) ;; add to global list
 
     (kill-ring-save start end) ;; copy highlighted text
 
@@ -504,7 +504,7 @@ MODE-FN the function to turn on the desired mode."
 
     (deactivate-mark)
 
-    (funcall mor-switch-buff-fn (mor-selection-buffer-tmp sel))
+    (funcall mor-switch-buff-fn (mor-sel-buffer-tmp sel))
     (yank)              ;; paste text
     ;; ignore errors before turning on mode, otherwise mor key binds won't be
     ;; set. Like "C-c c" to close.
