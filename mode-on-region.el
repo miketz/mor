@@ -229,6 +229,25 @@ anything else."
   ;; but store here anyway to support future mixing.
   (readonlyp))
 
+(defun mor-get-selections-for-buffer (buff buff-access-fn)
+  "Return a list of selections for the tmp buffer TMP-BUFF.
+Using the cl-defstruct acessor BUFF-ACCESS-FN."
+  (cl-remove-if-not (lambda (sel)
+                      (eq buff
+                          (funcall buff-access-fn sel)))
+                    mor-selection-list))
+
+(defun mor-get-selections-for-buffer-orig (orig-buff)
+  "Return a list of selections for the original buffer ORIG-BUFF."
+  (mor-get-selections-for-buffer #'mor-selection-buffer-orig))
+
+(defun mor-get-selections-for-buffer-tmp (tmp-buff)
+  "Return a list of selections for the tmp buffer TMP-BUFF."
+  (mor-get-selections-for-buffer #'mor-selection-buffer-tmp))
+
+
+
+
 (defvar mor-selection-list '()
   "A global list of all selections.  For all buffers.")
 
@@ -441,10 +460,7 @@ MODE-FN the function to turn on the desired mode."
 
   ;; GUARD: Don't allow the new region to overlap another mor region.
   (let* ((orig-buff (current-buffer))
-         (orig-buff-selections (cl-remove-if-not (lambda (buff)
-                                                   (eq orig-buff
-                                                       (mor-selection-buffer-orig buff)))
-                                                 mor-selection-list)))
+         (orig-buff-selections (mor-get-selections-for-buffer-orig orig-buff)))
     (dolist (sel orig-buff-selections)
       ;; TODO: fix off-by-1 issue where it wrongly detects overlap immediately
       ;; after an existing region. But detects wrongly on the side of safety
