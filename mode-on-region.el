@@ -242,12 +242,17 @@ Using the cl-defstruct acessor BUFF-ACCESS-FN."
                     mor-sel-list))
 
 (defun mor-get-selections-for-buffer-orig (orig-buff)
-  "Return a list of selections for the original buffer ORIG-BUFF."
-  (mor-get-selections-for-buffer orig-buff #'mor-sel-buffer-orig))
+  "Return a list of selections for the original buffer ORIG-BUFF.
+The user can have multiple selections on the orig buff so this returns a list"
+  (mor-get-selections-for-buffer orig-buff
+                                 #'mor-sel-buffer-orig))
 
-(defun mor-get-selections-for-buffer-tmp (tmp-buff)
-  "Return a list of selections for the tmp buffer TMP-BUFF."
-  (mor-get-selections-for-buffer tmp-buff #'mor-sel-buffer-tmp))
+(defun mor-get-selection-for-buffer-tmp (tmp-buff)
+  "Return selection for TMP-BUFF.
+Each tmp buffer handles exactly 1 selection so this returns 1 selection.
+Returns nil if not found."
+  (car (mor-get-selections-for-buffer tmp-buff
+                                      #'mor-sel-buffer-tmp)))
 
 
 
