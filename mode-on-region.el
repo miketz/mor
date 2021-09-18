@@ -626,7 +626,8 @@ Deletes a temporary file created for the tmp buffer."
       (let ((start (marker-position mor--start))
             (end (marker-position mor--end))
             (orig-buff mor--orig-buffer)
-            (tmp-buff (current-buffer)))
+            (tmp-buff (current-buffer))) ;;TODO: is this a bug? will it be correct
+                                         ;;when killing froma different buffer like ibuffer?
         (with-current-buffer mor--orig-buffer
           ;; GUARD: if the whole buffer was readonly don't bother toggling.
           (unless buffer-read-only
