@@ -496,7 +496,7 @@ MODE-FN the function to turn on the desired mode."
               ;; as the text around them is changed.
               :marker-start (set-marker (make-marker) start (current-buffer))
               :marker-end (set-marker (make-marker) end (current-buffer))
-              :overlay nil ;; will set a bit later
+              :overlays nil ;; will set a bit later
               :readonlyp mor-readonly-for-extra-protection-p)))
 
     (push sel mor-sel-list) ;; add to global list
