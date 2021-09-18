@@ -186,9 +186,8 @@ When using `mor-readonly-for-extra-protection-p'"
 ;; Closure functions (created in a let) seem to be undetected by the byte
 ;; compiler or flycheck.  Suppress warnings by redundantly declaring the
 ;; functions here.
-(declare-function mor-get-tmp-buffers 'mode-on-region)
-(declare-function mor--gen-buffer-name 'mode-on-region)
-(declare-function mor--gen-file-name 'mode-on-region)
+(declare-function mor--gen-buffer-name "mode-on-region" ())
+(declare-function mor--gen-file-name "mode-on-region" ())
 
 ;; TODO: Fix bug where tmp buffer won't die if the orig buffer is killed first.
 ;;       Probably need some guards when attempting to dispose markers in the
