@@ -370,7 +370,7 @@ END2 = range 2 end."
         (between? start2 end2 start1)
         (between? start2 end2 end1))))
 
-(defun mor--set-region (state sel)
+(defun mor--set-region (state sel) ;;###ported
   "Make region writable or readonly based on STATE.
 If STATE=readonly make region readonly.
 If STATE=writable make region writable.
@@ -453,7 +453,7 @@ Region is between START and END inclusive."
 
 ;; Using `cl-defun' for the `cl-return-from' feature. An early return feels
 ;; better than nesting code in a conditional statement.
-(cl-defun mor--mode-on-region (start end mode-fn)
+(cl-defun mor--mode-on-region (start end mode-fn) ;;###ported, need more testing
   "The core function to copy region to a new buffer.
 Region is between START and END.
 MODE-FN the function to turn on the desired mode."
@@ -543,49 +543,55 @@ MODE-FN the function to turn on the desired mode."
           (delete-file file))
         (write-file file)))))
 
-(defun mor-copy-back ()
+(defun mor-copy-back () ;;###converting
   "Copy the tmp buffer text back the original buffer.
 
 WARNING:
 Overwrites the original text."
   (interactive)
-  (cond
-   ;; guard 1. validate we are in a mor-tmp buffer
-   ((null mor--orig-buffer)
-    (message "You must be in a mor-tmp buffer for this to work."))
-   ;; guard 2. ensure orig-buff is not in read-only mode
-   ((with-current-buffer mor--orig-buffer buffer-read-only)
-    (message "Original buffer is read-only. Cannot copy back."))
-   ;; else. Guards passed
-   (t
-    ;; Cache tmp buffer local values. They will be invisible once we switch
-    ;; back to the orig buffer.
-    (let* ((tmp-buff (current-buffer))
-           (start (marker-position mor--start))
-           (rng (- (marker-position mor--end)
-                   start)))
+  (let* ((sel (mor-get-selection-for-buffer-tmp (current-buffer)))
+         (orig-buff (mor-sel-buffer-orig sel)))
+    (cond
+     ;; guard 1. validate we are in a mor-tmp buffer
+     ((null sel)
+      (message "You must be in a mor-tmp buffer for this to work."))
+     ;; guard 2. ensure orig-buff is not in read-only mode
+     ((with-current-buffer orig-buff buffer-read-only)
+      (message "Original buffer is read-only. Cannot copy back."))
+     ;; else. Guards passed
+     (t
+      ;; Cache tmp buffer local values. They will be invisible once we switch
+      ;; back to the orig buffer.
+      (let* ((tmp-buff (mor-sel-buffer-tmp sel))
+             (marker-start (mor-sel-marker-start sel))
+             (marker-end (mor-sel-marker-end sel))
+             (start (marker-position marker-start))
+             (rng (- (marker-position marker-end)
+                     start)))
 
-      (mor--clean-up)
+        (mor--clean-up)
 
-      ;; copy tmp buffer text.
-      (kill-ring-save (point-min) (point-max))
+        ;; copy tmp buffer text.
+        (kill-ring-save (point-min) (point-max))
 
-      ;; Switch to orig buff. Buffer local values will be invisible!
-      (funcall mor-switch-buff-fn mor--orig-buffer)
+        ;; Switch to orig buff. Buffer local values will be invisible!
+        (funcall mor-switch-buff-fn orig-buff)
 
-      ;; delete original selected region
-      (goto-char start)
-      (delete-char rng)
-      ;; paste new text
-      (yank)
+        ;; delete original selected region
+        (goto-char start)
+        (delete-char rng)
+        ;; paste new text
+        (yank)
 
-      ;; kill the tmp buffer because multiple attempts to copy back text
-      ;; will be wrong due to the now invalid start/end location. Will need
-      ;; to use a better way to track start/end before we can allow the
-      ;; tmp buffer to live longer for multiple copies.
-      (with-current-buffer tmp-buff
-        (set-buffer-modified-p nil) ; avoid save prompt for tmp buffers with tmp files.
-        (quit-window t (get-buffer-window tmp-buff)))))))
+        ;; kill the tmp buffer because multiple attempts to copy back text
+        ;; will be wrong due to the now invalid start/end location. Will need
+        ;; to use a better way to track start/end before we can allow the
+        ;; tmp buffer to live longer for multiple copies.
+        (with-current-buffer tmp-buff
+          (set-buffer-modified-p nil) ; avoid save prompt for tmp buffers with tmp files.
+          (quit-window t (get-buffer-window tmp-buff)))
+        ;; delete selection from the global list
+        (setq mor-sel-list (delq sel mor-sel-list)))))))
 
 (defun mor-close-tmp-buffer ()
   "Kill the tmp buffer and clean up the window if applicable.
@@ -595,36 +601,42 @@ Call this if you don't want to copy the text back to the original buffer."
   (quit-window t))
 
 
-(defun mor--marker-active-p (m)
+(defun mor--marker-active-p (m) ;;###ported
   "Return t if the marker is actively pointing to a position.
 M for marker."
   (and (not (null m))
        (not (null (marker-position m)))))
 
-(defun mor--clean-up ()
+(defun mor--clean-up () ;;###ported, untested
   "Perform cleanup when the tmp buffer is killed.
 Unlocks the region if the original buffer.
 Deletes a temporary file created for the tmp buffer."
-  ;; Unlock region in the original buffer.
-  (when mor-readonly-for-extra-protection-p
-    ;; guard against dupe call from hook
-    (when (and (mor--marker-active-p mor--start)
-               (mor--marker-active-p mor--end))
-      (let ((start (marker-position mor--start))
-            (end (marker-position mor--end))
-            (orig-buff mor--orig-buffer)
-            (tmp-buff (current-buffer))) ;;TODO: is this a bug? will it be correct
-                                         ;;when killing froma different buffer like ibuffer?
-        (with-current-buffer mor--orig-buffer
-          ;; GUARD: if the whole buffer was readonly don't bother toggling.
-          (unless buffer-read-only
-            (mor--set-region 'writable start end orig-buff tmp-buff))))))
+  ;; extract struct members into local variables. For shortness/readability.
+  ;; TODO: verify (current-buffer) always refers to tmp buffer
+  (let* ((tmp-buff (current-buffer))
+         (sel (mor-get-selection-for-buffer-tmp tmp-buff))
+         (readonlyp (mor-sel-readonlyp sel))
+         (marker-start (mor-sel-marker-start sel))
+         (marker-end (mor-sel-marker-end sel))
+         (orig-buff (mor-sel-buffer-orig sel)))
+    ;; Unlock region in the original buffer.
+    (when readonlyp ;mor-readonly-for-extra-protection-p
+      ;; guard against dupe call from hook
+      (when (and (mor--marker-active-p marker-start)
+                 (mor--marker-active-p marker-end))
+        (let ((start (marker-position marker-start))
+              (end (marker-position marker-end)))
+          (with-current-buffer orig-buff
+            ;; GUARD: if the whole buffer was readonly don't bother toggling.
+            (unless buffer-read-only
+              ;; (mor--set-region 'writable start end orig-buff tmp-buff)
+              (mor--set-region 'writable sel))))))
 
-  ;; clear markers
-  (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
-    (set-marker mor--start nil))
-  (when (mor--marker-active-p mor--start) ; guard against dupe call from hook
-    (set-marker mor--end nil))
+    ;; clear markers
+    (when (mor--marker-active-p marker-start) ; guard against dupe call from hook
+      (set-marker marker-start nil))
+    (when (mor--marker-active-p marker-end) ; guard against dupe call from hook
+      (set-marker marker-end nil)))
 
   ;; delete tmp buffer. No guard on `mor-allow-tmp-files-p' because it may
   ;; have been toggled off during the tmp file's lifetime.
