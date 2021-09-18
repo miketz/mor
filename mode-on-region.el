@@ -362,7 +362,7 @@ deletion hook to remove the overlay."
       (setq mor--overlays (remove entry mor--overlays)))))
 
 
-(defun mor--overlap-p (start1 end1 start2 end2)
+(defun mor--overlap-p (start1 end1 start2 end2) ;;###ported
   "Determines if 2 ranges overlap.
 START1 = range 1 start.
 END1 = range 1 end.
