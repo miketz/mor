@@ -262,18 +262,6 @@ Returns nil if not found."
 
 
 
-;; Local to the tmp-buff
-(defvar-local mor--orig-buffer nil
-  "The original buffer you highlighted some text in.
-Used in tmp buffer to transfer the modified text back to the original buffer.")
-(defvar-local mor--start nil
-  "Start of region. Implemented via a marker.
-Used in tmp buffer to transfer the modified text back to the original buffer.")
-(defvar-local mor--end nil
-  "End of region. Implemented via a marker.
-Used in tmp buffer to transfer the modified text back to the original buffer.")
-
-
 ;; Local to the orig-buff
 (defvar-local mor--overlays '()
   "Association list of overlays in the orig-buffer.
