@@ -222,7 +222,13 @@ anything else."
   ;; markers, overlay exist in buffer-orig
   (marker-start)
   (marker-end)
-  (overlay)
+  (overlays :documentation
+            "Association list of overlays in the orig-buffer.
+Ties each overlay to the relevant tmp buffer, so the overlay can be deleted
+when the tmp-buffer is deleted.
+Conceptually it would look something like this:
+    ((tmp-buff1 . ov1)
+     (tmp-buff2 . ov2))")
   ;; `mor-readonly-for-extra-protection-p' has this globally for all regions
   ;; but store here anyway to support future mixing. And in case anyone changes
   ;; the global after selection creation.
