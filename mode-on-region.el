@@ -78,7 +78,6 @@
 ;;; Code:
 (require 'cl-lib)
 (provide 'cl-macs) ;; for cl-defstruct
-(require 'rx)
 (require 'whitespace)
 
 (defconst mor--minimal-emacs "24.1"
@@ -362,11 +361,6 @@ deletion hook to remove the overlay."
       (delete-overlay ov)
       (setq mor--overlays (remove entry mor--overlays)))))
 
-(defun mor--starts-with-p (string prefix)
-  "Return t if STRING begins with PREFIX."
-  (and (string-match (rx-to-string `(: bos ,prefix) t)
-                     string)
-       t))
 
 (defun mor--overlap-p (start1 end1 start2 end2)
   "Determines if 2 ranges overlap.
