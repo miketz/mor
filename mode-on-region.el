@@ -335,7 +335,7 @@ not even tied to the buffer name sequence."
                   (md5 (int-to-string (random))))
         (cl-incf seq)))))
 
-(defun mor-kill-tmp-buffers ()
+(defun mor-kill-tmp-buffers () ;;###ported
   "Delete the junk tmp buffers."
   (interactive)
   (dolist (b (mor-get-tmp-buffers))
@@ -370,7 +370,7 @@ END2 = range 2 end."
         (between? start2 end2 start1)
         (between? start2 end2 end1))))
 
-(defun mor--set-region (state sel) ;;###ported
+(defun mor--set-region (state sel) ;;###converting overlay fns
   "Make region writable or readonly based on STATE.
 If STATE=readonly make region readonly.
 If STATE=writable make region writable.
@@ -409,7 +409,7 @@ So I can take advantage of dynamic binding.
 Keep this value nil.  Only bind it dynamically in a `let' statement.")
 
 ;;;###autoload
-(defun mor-mode-on-region (start end)
+(defun mor-mode-on-region (start end) ;;###ported
   "Switch to a new buffer with the highlighted text.
 Turn on the selected mode.
 Region is between START and END inclusive."
@@ -427,7 +427,7 @@ Region is between START and END inclusive."
                                   nil t)))))
 
 ;;;###autoload
-(defun mor-curr-mode-on-region (start end)
+(defun mor-curr-mode-on-region (start end) ;;###ported
   "Same as `mor-mode-on-region' but default to the mode of the current buffer.
 Region is between START and END inclusive."
   (interactive "r")
@@ -440,7 +440,7 @@ Region is between START and END inclusive."
 
 
 ;;;###autoload
-(defun mor-prev-mode-on-region (start end)
+(defun mor-prev-mode-on-region (start end) ;;###ported
   "Same as `mor-mode-on-region' but use the previous mode.
 Previous mode is saved in variable `mor-prev-mode-fn'.
 Region is between START and END inclusive."
@@ -591,7 +591,7 @@ Overwrites the original text."
           (set-buffer-modified-p nil) ; avoid save prompt for tmp buffers with tmp files.
           (quit-window t (get-buffer-window tmp-buff))))))))
 
-(defun mor-close-tmp-buffer ()
+(defun mor-close-tmp-buffer () ;;###ported
   "Kill the tmp buffer and clean up the window if applicable.
 Call this if you don't want to copy the text back to the original buffer."
   (interactive)
