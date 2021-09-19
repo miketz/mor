@@ -596,6 +596,7 @@ Overwrites the original text."
 Call this if you don't want to copy the text back to the original buffer."
   (interactive)
   (set-buffer-modified-p nil) ; avoid save prompt for tmp buffers with tmp files.
+  ;; NOTE: relies on `mor--clean-up' for cleanup. via kill-buffer-hook.
   (quit-window t))
 
 
