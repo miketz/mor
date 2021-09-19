@@ -543,7 +543,7 @@ MODE-FN the function to turn on the desired mode."
           (delete-file file))
         (write-file file)))))
 
-(defun mor-copy-back () ;;###converting
+(defun mor-copy-back () ;;###ported, untested
   "Copy the tmp buffer text back the original buffer.
 
 WARNING:
@@ -589,9 +589,7 @@ Overwrites the original text."
         ;; tmp buffer to live longer for multiple copies.
         (with-current-buffer tmp-buff
           (set-buffer-modified-p nil) ; avoid save prompt for tmp buffers with tmp files.
-          (quit-window t (get-buffer-window tmp-buff)))
-        ;; delete selection from the global list
-        (setq mor-sel-list (delq sel mor-sel-list)))))))
+          (quit-window t (get-buffer-window tmp-buff))))))))
 
 (defun mor-close-tmp-buffer ()
   "Kill the tmp buffer and clean up the window if applicable.
@@ -612,7 +610,8 @@ M for marker."
 Unlocks the region if the original buffer.
 Deletes a temporary file created for the tmp buffer."
   ;; extract struct members into local variables. For shortness/readability.
-  ;; TODO: verify (current-buffer) always refers to tmp buffer
+  ;; TODO: verify (current-buffer) always refers to tmp buffer. even if buffer kill occured from
+  ;; a different buffer like ibuffer.
   (let* ((tmp-buff (current-buffer))
          (sel (mor-get-selection-for-buffer-tmp tmp-buff))
          (readonlyp (mor-sel-readonlyp sel))
@@ -636,12 +635,15 @@ Deletes a temporary file created for the tmp buffer."
     (when (mor--marker-active-p marker-start) ; guard against dupe call from hook
       (set-marker marker-start nil))
     (when (mor--marker-active-p marker-end) ; guard against dupe call from hook
-      (set-marker marker-end nil)))
+      (set-marker marker-end nil))
 
-  ;; delete tmp buffer. No guard on `mor-allow-tmp-files-p' because it may
+    ;;  selection from the global list
+    (setq mor-sel-list (delq sel mor-sel-list)))
+
+  ;; delete tmp file. No guard on `mor-allow-tmp-files-p' because it may
   ;; have been toggled off during the tmp file's lifetime.
   (when mor-auto-delete-tmp-files-p
-    (let ((tmp-file (buffer-file-name)))
+    (let ((tmp-file (buffer-file-name))) ;;TODO: verify curret buffer is alwyas the tmp buffer
       (when (and (not (null tmp-file))
                  (file-exists-p tmp-file))
         (delete-file tmp-file)))))
