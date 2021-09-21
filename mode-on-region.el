@@ -297,6 +297,28 @@ END of overlay region."
       (setq mor--overlays (remove entry mor--overlays)))))
 
 
+(defmacro mor-random-str-old ()
+  "Generate a random string of letters/numbers.
+Appended to buffer/filenames to increase uniqueness."
+  ;; implemented as a macro so I can use splice @ to strip out parens and pass
+  ;; into `vector' to get a vector.
+  `(vector
+    ,@(cl-loop repeat 8
+               collect (let ((r (random 36)))
+                         (if (< r 10)
+                             (+ r ?0)
+                           (+ r (- ?a 10)))))))
+
+(defun mor-random-str () ;;###ported
+  "Generate a random string of letters/numbers.
+Appended to buffer/filenames to increase uniqueness."
+  ;; (md5 (int-to-string (random)))
+  (apply #'string (cl-loop repeat 8
+                           collect (let ((r (random 36)))
+                                     (if (< r 10)
+                                         (+ r ?0)
+                                       (+ r (- ?a 10)))))))
+
 (defun mor-get-tmp-buffers () ;;###ported
   "Return a list of the mor tmp buffers."
   (cl-loop for b in (mapcar #'mor-sel-buffer-tmp mor-sel-list)
@@ -318,7 +340,7 @@ END of overlay region."
                   "-"
                   (int-to-string seq)
                   "-"
-                  (md5 (int-to-string (random))))
+                  (mor-random-str))
         (cl-incf seq))))
 
   (let ((seq 0))
@@ -332,7 +354,7 @@ not even tied to the buffer name sequence."
           (concat mor--prefix
                   (int-to-string seq)
                   "-"
-                  (md5 (int-to-string (random))))
+                  (mor-random-str))
         (cl-incf seq)))))
 
 (defun mor-kill-tmp-buffers () ;;###ported
