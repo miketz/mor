@@ -298,6 +298,7 @@ END of overlay region."
 
 (defun mor-random-str () ;;###ported
   "Generate a random string of letters/numbers.
+Base-36, aphanumeric.  a to z.  0 to 9.
 Appended to buffer/filenames to increase uniqueness."
   ;; (md5 (int-to-string (random)))
   (apply #'string (cl-loop repeat 8
