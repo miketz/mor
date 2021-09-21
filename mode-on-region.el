@@ -84,7 +84,7 @@
   "Minimum Emacs version needed to run mode-on-region.
 This version introduced lexical binding.")
 
-(defun mor-assert-dependencies ()
+(defun mor-assert-dependencies () ;;###ported
   "Check for required dependencies.  Warn the user if any are missing."
   (when (version< emacs-version
                   mor--minimal-emacs)
@@ -222,13 +222,13 @@ anything else."
   ;; markers, overlay exist in buffer-orig
   (marker-start)
   (marker-end)
-  (overlays :documentation
-            "Association list of overlays in the orig-buffer.
-Ties each overlay to the relevant tmp buffer, so the overlay can be deleted
-when the tmp-buffer is deleted.
-Conceptually it would look something like this:
-    ((tmp-buff1 . ov1)
-     (tmp-buff2 . ov2))")
+  ;; Association list of overlays in the orig-buffer.
+  ;; Ties each overlay to the relevant tmp buffer, so the overlay can be deleted
+  ;; when the tmp-buffer is deleted.
+  ;; Conceptually it would look something like this:
+  ;;     ((tmp-buff1 . ov1)
+  ;;      (tmp-buff2 . ov2))
+  (overlays)
   ;; `mor-readonly-for-extra-protection-p' has this globally for all regions
   ;; but store here anyway to support future mixing. And in case anyone changes
   ;; the global after selection creation.
@@ -342,18 +342,29 @@ not even tied to the buffer name sequence."
     (kill-buffer b))) ; NOTE: overlays are deleted automatically when the
                       ;       tmp-buffer is killed.
 
-;; TODO: clean up orphaned "read-only" sections too, not just the overlay.
-(defun mor-kill-overlays ()
+;; DONE: clean up orphaned "read-only" sections too, not just the overlay.
+;; TODO: test the above "done"
+(defun mor-kill-overlays () ;;###ported, untested
   "Delete all overlays in the orig buffer.
 You must be in the orig-buffer when you call this.  This is mostly just to clean
 up any any orphaned overlays.  In theory this should never happen, but in a
 bug-case where the tmp-buffer creation failed, we can't rely on the tmp-buffer
 deletion hook to remove the overlay."
   (interactive)
-  (dolist (entry mor--overlays)
-    (let ((ov (cdr entry)))
-      (delete-overlay ov)
-      (setq mor--overlays (remove entry mor--overlays)))))
+  ;; ASSUMPTION: this method was callled form the orig-buffer.
+  (let* ((sels (mor-get-selections-for-buffer-orig (current-buffer)))
+         (buff-ov-pairs (mapcar #'mor-sel-overlays sels)))
+    ;; buff-ov-pairs has structure like:
+    ;; ((tmp-buff1 . ov1)
+    ;;  (tmp-buff2 . ov2))
+    (dolist (entry buff-ov-pairs)
+      (let ((ov (cdr entry)))
+        (delete-overlay ov)
+        (setq buff-ov-pairs (delq entry buff-ov-pairs))))
+
+    (unless buffer-read-only
+      (dolist (sel sels)
+        (mor--set-region 'writable sel)))))
 
 
 (defun mor--overlap-p (start1 end1 start2 end2) ;;###ported
@@ -392,7 +403,7 @@ SEL is the selected region object."
           (if (eq state 'readonly)
               (progn
                 ;; create overlay and save back to the struct
-                (setf (mor-sel-overlay sel)
+                (setf (mor-sel-overlays sel)
                       (mor--add-overlay-readonly orig-buff tmp-buff start end))
                 ;; (overlay-put (make-overlay start end) 'face 'mor-readonly-face)
                 (add-text-properties start-adj end '(read-only t)))
@@ -624,13 +635,11 @@ Deletes a temporary file created for the tmp buffer."
       ;; guard against dupe call from hook
       (when (and (mor--marker-active-p marker-start)
                  (mor--marker-active-p marker-end))
-        (let ((start (marker-position marker-start))
-              (end (marker-position marker-end)))
-          (with-current-buffer orig-buff
-            ;; GUARD: if the whole buffer was readonly don't bother toggling.
-            (unless buffer-read-only
-              ;; (mor--set-region 'writable start end orig-buff tmp-buff)
-              (mor--set-region 'writable sel))))))
+        (with-current-buffer orig-buff
+          ;; GUARD: if the whole buffer was readonly don't bother toggling.
+          (unless buffer-read-only
+            ;; (mor--set-region 'writable start end orig-buff tmp-buff)
+            (mor--set-region 'writable sel)))))
 
     ;; clear markers
     (when (mor--marker-active-p marker-start) ; guard against dupe call from hook
