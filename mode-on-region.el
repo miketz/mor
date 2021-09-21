@@ -238,8 +238,8 @@ anything else."
   "A global list of all selections.  For all buffers.")
 
 (defun mor-get-selections-for-buffer (buff buff-access-fn)
-  "Return a list of selections for the tmp buffer TMP-BUFF.
-Using the cl-defstruct acessor BUFF-ACCESS-FN."
+  "Return a list of selections for BUFF.
+Using the `cl-defstruct' acessor BUFF-ACCESS-FN."
   (cl-remove-if-not (lambda (sel)
                       (eq buff
                           (funcall buff-access-fn sel)))
