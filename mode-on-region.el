@@ -296,19 +296,6 @@ END of overlay region."
       ;; remove entry from assoc list
       (setq mor--overlays (remove entry mor--overlays)))))
 
-
-(defmacro mor-random-str-old ()
-  "Generate a random string of letters/numbers.
-Appended to buffer/filenames to increase uniqueness."
-  ;; implemented as a macro so I can use splice @ to strip out parens and pass
-  ;; into `vector' to get a vector.
-  `(vector
-    ,@(cl-loop repeat 8
-               collect (let ((r (random 36)))
-                         (if (< r 10)
-                             (+ r ?0)
-                           (+ r (- ?a 10)))))))
-
 (defun mor-random-str () ;;###ported
   "Generate a random string of letters/numbers.
 Appended to buffer/filenames to increase uniqueness."
