@@ -296,12 +296,11 @@ END of overlay region."
       ;; remove entry from assoc list
       (setq mor--overlays (remove entry mor--overlays)))))
 
-(defun mor-random-str () ;;###ported
-  "Generate a random string of letters/numbers.
-Base-36, aphanumeric.  a to z.  0 to 9.
-Appended to buffer/filenames to increase uniqueness."
+(defun mor-random-str (str-len) ;;###ported
+  "Generate a random string of letters/numbers of length STR-LEN.
+Base-36, aphanumeric.  a to z.  0 to 9."
   ;; (md5 (int-to-string (random)))
-  (apply #'string (cl-loop repeat 8
+  (apply #'string (cl-loop repeat str-len
                            collect (let ((r (random 36)))
                                      (if (< r 10)
                                          (+ r ?0)
@@ -328,7 +327,7 @@ Appended to buffer/filenames to increase uniqueness."
                   "-"
                   (int-to-string seq)
                   "-"
-                  (mor-random-str))
+                  (mor-random-str 8)) ;; Append random str for uniqueness.
         (cl-incf seq))))
 
   (let ((seq 0))
@@ -342,7 +341,7 @@ not even tied to the buffer name sequence."
           (concat mor--prefix
                   (int-to-string seq)
                   "-"
-                  (mor-random-str))
+                  (mor-random-str 8)) ;; Append random str for uniqueness.
         (cl-incf seq)))))
 
 (defun mor-kill-tmp-buffers () ;;###ported
