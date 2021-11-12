@@ -78,7 +78,7 @@
 ;;; Code:
 (require 'cl-lib)
 (provide 'cl-macs) ;; for cl-defstruct
-(require 'whitespace)
+(require 'whitespace) ;; for `whitespace-cleanup'
 
 (defconst mor--minimal-emacs "24.1"
   "Minimum Emacs version needed to run mode-on-region.
